@@ -8,7 +8,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 
 **Core loop:** Zombies spawn → Player rams/shoots zombies for XP → Player hauls resources to village for upgrades → survive wave → repeat.
 
-**Train movement:** slither.io model — locomotive steers toward mouse cursor, compartments lerp through position history with fixed delay. Body contact damages zombies.
+**Train movement:** A/D keys steer the train left/right (tank-style drift). Mouse pointer is used for auto-targeting (nearest to player center OR nearest to mouse pointer). Compartments lerp through position history with fixed delay. Body contact damages zombies.
 
 **Dual economy:** XP (zombie kills) → player level-up → modifier/weapon choices. Resources (haul to village) → village tier upgrades → better walls and turrets.
 
@@ -95,3 +95,56 @@ You are a **container conductor** — the driver of an armored freight train in 
   - **2D games:** camera pans and smooth scrolling, zoom transitions between overview and close-up, trigger representative gameplay sequences, tight viewport framing
   - Show: train snaking through zombie horde → resource pickup → village delivery → level-up card selection → village wall upgrade → boss encounter
 - **Verify:** A smooth MP4 video showing polished gameplay with no visual glitches.
+
+---
+
+## 5. Fix Movement — A/D Drift & Dual Targeting
+
+- **Depends on:** (none — applies on top of existing code)
+- **Status:** pending
+- **Targets:** scripts/locomotive.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/weapon_mortar.gd, scripts/weapon_taser.gd, scripts/weapon_railgun.gd, scripts/weapon_tesla.gd, scripts/weapon_devastator.gd, project.godot, scripts/hud.gd
+- **Goal:** Replace mouse-steering with A/D keyboard drift control. Change targeting to dual-mode auto-aim: nearest to player center OR nearest to mouse pointer. Mouse pointer acts as a targeting aid, not a steering control.
+- **Requirements:**
+  - **Movement — A/D drift only:** Locomotive always moves forward at current speed. A key = steer left (rotate counter-clockwise), D key = steer right (rotate clockwise). No mouse-based steering. Turn speed inversely proportional to speed (same as before). This is tank-style drift: the train glides forward and the player controls the drift angle with A/D.
+  - **Targeting mode 1 — Nearest to Player Center:** Default mode. Weapons auto-aim the nearest enemy within range, measured from the locomotive's global_position. This is the existing behavior.
+  - **Targeting mode 2 — Nearest to Mouse Pointer:** When the mouse pointer is within the game viewport, weapons auto-aim the nearest enemy within range, measured from the mouse world position. This gives the player directional control over targeting by moving the mouse near enemies they want to prioritize.
+  - **Mode switching:** Press TAB to toggle between targeting modes. HUD shows current targeting mode indicator (e.g., "🎯 Player" vs "🎯 Mouse").
+  - **All weapons** must use the shared `_find_target()` from modifier_base.gd which respects the active targeting mode.
+  - **Visual feedback:** Draw a subtle targeting line/indicator from the weapon origin to the current target to show what's being aimed at.
+  - **Input mapping:** Add `target_mode_toggle` action mapped to TAB in project.godot. Remove mouse-based steering from locomotive._steer_toward_mouse().
+- **Verify:** Train moves forward continuously, A/D keys steer it left/right in a drift style. Mouse does NOT control movement. Weapons auto-aim nearest enemy to player by default. Press TAB switches to mouse-pointer targeting — weapons now aim nearest enemy to mouse position. HUD shows current targeting mode. Screenshots confirm both modes working.
+
+---
+
+## 6. Card Upgrade System — Weapon-Specific Level-Up
+
+- **Depends on:** 5
+- **Status:** pending
+- **Targets:** scripts/player_manager.gd, scripts/hud.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/weapon_mortar.gd, scripts/weapon_taser.gd, scripts/weapon_railgun.gd, scripts/weapon_tesla.gd, scripts/weapon_devastator.gd, scripts/modifier_resource_magnet.gd, scripts/modifier_repair_drone.gd, scripts/modifier_shield_bubble.gd
+- **Goal:** Implement a full weapon-specific upgrade card system. On level-up, the player sees 3 cards that can be: (a) upgrade an existing weapon to its next level (applying the specific stat buff from the spec table), (b) a new weapon if slots are empty, or (c) a passive/utility upgrade. Each weapon has 5 levels with distinct named upgrades. Utility modifiers have 3 levels.
+- **Requirements:**
+  - **Card generation logic:** On level-up, `PlayerManager._generate_choices()` produces 3 cards drawn from:
+    1. Upgrade cards for existing weapons (show weapon name + upgrade level + specific effect)
+    2. New weapon cards (if empty weapon slot on locomotive or compartments)
+    3. Passive upgrade cards (Turbo Engine, Heavy Frame, Armor Plating, Cargo Expansion)
+    4. Utility upgrade cards (Resource Magnet, Repair Drone, Shield Bubble, Speed Injector)
+    5. New utility cards (if empty utility slot)
+  - **Weapon upgrade tables** — each weapon tracks its own level (1-5) and applies specific buffs per level:
+    - Gatling: L2 Overclocked Barrel (+20% fire rate), L3 Armor Piercing (+50% vs armored), L4 Dual Barrel (2 projectiles), L5 Minigun Mode (no spin-up)
+    - Flamethrower: L2 Extended Nozzle (+40% range), L3 Sticky Fuel (burn lingers 2s), L4 Wide Cone (+50% cone angle), L5 Infernal Pressure (+100% dmg, death explosion)
+    - Mortar: L2 Heavy Shell (+30% AoE), L3 Rapid Reload (2.0s→1.4s), L4 Incendiary Round (fire patch), L5 Barrage Mode (3 shells)
+    - Taser: L2 Deep Shock (slow 50%→70%), L3 Chain Bolt (arc to 1 enemy), L4 Stun Round (20% stun 1s), L5 Tesla Overload (every 5 hits AoE)
+    - Railgun: L2 Sabot Core (+30 dmg), L3 Magnetic Accelerator (3.5s→2.5s), L4 Phase Round (full pierce damage), L5 Overcharge (2s charge = 3× dmg)
+    - Napalm: L2 Slow Burn (2s→4s patch), L3 Wide Splash (+50% AoE), L4 Phosphor Round (8/s→15/s DOT), L5 Firestorm (3 patches per shot)
+    - Cluster: L2 Extra Payload (4→6 bomblets), L3 Proximity Fuse (bomblet AoE), L4 Armor Cracker (-30% armor debuff), L5 Carpet Bomb (4.0s→2.5s, wider spread)
+    - Tesla: L2 Extended Coil (3→5 chains), L3 Surge Capacitor (+40% dmg), L4 Ground Arc (electric patch), L5 Storm Core (unlimited range)
+  - **Utility upgrade tables** (max level 3):
+    - Resource Magnet: L2 +50% pull radius, L3 attracts XP orbs too
+    - Repair Drone: L2 2→4 HP/s, L3 repairs adjacent compartment
+    - Shield Bubble: L2 100→175 absorb, L3 30s→18s cooldown
+    - Speed Injector: L2 threshold 10→7 kills, L3 duration 5s→8s +10% speed
+  - **HUD card display:** Each card shows: weapon/modifier icon (colored square), name, current level → next level, specific upgrade effect description (e.g., "Overclocked Barrel — Fire rate +20%"). Press 1/2/3 to select. 15s auto-select timeout.
+  - **modifier_base.gd changes:** Add `upgrade_level: int` (1-5 for weapons, 1-3 for utilities) and `upgrade_names: Array[String]` and `get_upgrade_description(level): String` method.
+  - **player_manager.gd changes:** Track equipped weapons/utilities and their levels. Generate upgrade-aware cards. Apply upgrades via `weapon.on_level_up(new_level)`.
+  - **Each weapon script:** Override `on_level_up(level)` to apply the specific stat changes from its upgrade table.
+- **Verify:** Screenshots show: (1) level-up card panel with 3 choices — one shows "Gatling Gun Lv2 → Overclocked Barrel — Fire rate +20%" with clear upgrade diff; (2) after selecting, the gatling fires faster; (3) leveling up again shows "Gatling Gun Lv3 → Armor Piercing Rounds" or a different card; (4) utility cards show their level progression correctly.

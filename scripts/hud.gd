@@ -2,6 +2,8 @@ extends CanvasLayer
 ## res://scripts/hud.gd
 ## All HUD widget updates, level-up panel, mini-map, and cargo display.
 
+const _MB = preload("res://scripts/modifier_base.gd")
+
 @onready var village_hp_bar: ProgressBar = $Control/TopLeft/VillageHPBar
 @onready var xp_bar: ProgressBar = $Control/TopLeft/XPBar
 @onready var level_label: Label = $Control/TopLeft/LevelLabel
@@ -63,6 +65,7 @@ func _process(delta: float) -> void:
 	_update_cargo_display()
 	_draw_minimap()
 	_update_level_up_panel()
+	_update_targeting_mode()
 	_update_game_over()
 
 func _on_xp_changed(new_xp: int, max_xp: int) -> void:
@@ -181,6 +184,22 @@ func _update_level_up_panel() -> void:
 		timer_lbl.name = "TimerLabel"
 		level_up_panel.add_child(timer_lbl)
 	timer_lbl.text = "%.0fs" % _level_up_timer
+
+func _update_targeting_mode() -> void:
+	var ctrl = $Control as Control
+	if not ctrl:
+		return
+	var label = ctrl.get_node_or_null("TargetingModeLabel")
+	if not label:
+		label = Label.new()
+		label.name = "TargetingModeLabel"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.add_theme_color_override("font_color", Color("#FFD700"))
+		label.add_theme_font_size_override("font_size", 16)
+		label.position = Vector2(10, 100)
+		ctrl.add_child(label)
+	var mode_text := "Target: Player" if _MB.targeting_mode == _MB.TargetingMode.PLAYER_CENTER else "Target: Mouse"
+	label.text = mode_text
 
 func _update_game_over() -> void:
 	if not _game_over_visible:

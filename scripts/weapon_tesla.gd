@@ -33,26 +33,11 @@ func tick(dt: float) -> void:
 	_cooldown -= dt
 	if _cooldown > 0.0:
 		return
-	var target = _find_nearest_enemy()
+	var target = _find_target(range_px)
 	if not target:
 		return
 	_chain_lightning(target)
 	_cooldown = fire_rate
-
-func _find_nearest_enemy() -> Node:
-	if not _compartment:
-		return null
-	var enemies = _compartment.get_tree().get_nodes_in_group("enemies") if _compartment.get_tree() else []
-	var nearest: Node = null
-	var nearest_dist: float = range_px * range_px
-	for e in enemies:
-		if not e is Node2D:
-			continue
-		var d: float = _compartment.global_position.distance_squared_to(e.global_position)
-		if d < nearest_dist:
-			nearest_dist = d
-			nearest = e
-	return nearest
 
 func _chain_lightning(first_target: Node) -> void:
 	var origin: Vector2 = _compartment.global_position if _compartment else Vector2.ZERO

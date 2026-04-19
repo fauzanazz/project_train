@@ -1,6 +1,8 @@
 extends CharacterBody2D
 ## res://scripts/locomotive.gd
-## Mouse-cursor steering, speed, position history, and body damage to enemies.
+## A/D keyboard drift control, position history, and body damage to enemies.
+
+const _MB = preload("res://scripts/modifier_base.gd")
 
 const BASE_SPEED: float = 200.0
 const HISTORY_LENGTH: int = 120
@@ -31,25 +33,32 @@ func _ready() -> void:
 		position_history.append(global_position)
 
 func _physics_process(delta: float) -> void:
-	_steer_toward_mouse(delta)
+	_steer_with_keys(delta)
 	_move(delta)
 	_push_history()
 	_update_camera_zoom()
-	# Tick weapon on locomotive
 	if _weapon and _weapon.has_method("tick"):
 		_weapon.tick(delta)
 
 func _process(_delta: float) -> void:
 	queue_redraw()
 
-func _steer_toward_mouse(delta: float) -> void:
-	var mouse_world: Vector2 = get_global_mouse_position()
-	var to_mouse: Vector2 = (mouse_world - global_position)
-	if to_mouse.length_squared() < 400.0:
-		return
-	var target_angle: float = to_mouse.angle()
-	var effective_turn: float = turn_speed * (BASE_SPEED / max(current_speed, 1.0))
-	rotation = lerp_angle(rotation, target_angle, effective_turn * delta)
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("target_mode_toggle"):
+		_toggle_targeting_mode()
+
+func _steer_with_keys(delta: float) -> void:
+	var effective_turn: float = turn_speed * (BASE_SPEED / maxf(current_speed, 1.0))
+	if Input.is_action_pressed("steer_left"):
+		rotation -= effective_turn * delta
+	if Input.is_action_pressed("steer_right"):
+		rotation += effective_turn * delta
+
+func _toggle_targeting_mode() -> void:
+	if _MB.targeting_mode == _MB.TargetingMode.PLAYER_CENTER:
+		_MB.targeting_mode = _MB.TargetingMode.MOUSE_POINTER
+	else:
+		_MB.targeting_mode = _MB.TargetingMode.PLAYER_CENTER
 
 func _move(delta: float) -> void:
 	var dir: Vector2 = Vector2.RIGHT.rotated(rotation)
@@ -95,3 +104,9 @@ func _draw() -> void:
 	for wp: Vector2 in wheel_positions:
 		draw_circle(wp, 7.0, OUTLINE_COLOR)
 		draw_circle(wp, 5.5, WHEEL_RIM_COLOR)
+	# Targeting line from weapon origin to current target
+	if _MB.has_target:
+		var origin_local := to_local(_MB.targeting_origin)
+		var target_local := to_local(_MB.targeting_position)
+		draw_line(origin_local, target_local, Color(1.0, 1.0, 0.3, 0.25), 1.0)
+		draw_circle(target_local, 4.0, Color(1.0, 0.3, 0.3, 0.4))

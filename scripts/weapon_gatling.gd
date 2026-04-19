@@ -27,27 +27,10 @@ func tick(dt: float) -> void:
 	_spin_up = move_toward(_spin_up, 1.0, dt)
 	_cooldown -= dt * _spin_up
 	if _cooldown <= 0.0:
-		var target = _find_nearest_enemy()
+		var target = _find_target(range_px)
 		if target:
 			_fire_at(target)
 			_cooldown = fire_rate
-
-func _find_nearest_enemy() -> Node:
-	if not _compartment:
-		return null
-	var space = _compartment.get_world_2d().direct_space_state if _compartment.has_method("get_world_2d") else null
-	# Use scene tree group lookup — enemies are in group "enemies"
-	var enemies = _compartment.get_tree().get_nodes_in_group("enemies") if _compartment.get_tree() else []
-	var nearest: Node = null
-	var nearest_dist: float = range_px * range_px
-	for e in enemies:
-		if not e is Node2D:
-			continue
-		var d: float = _compartment.global_position.distance_squared_to(e.global_position)
-		if d < nearest_dist:
-			nearest_dist = d
-			nearest = e
-	return nearest
 
 func _fire_at(target: Node) -> void:
 	if not _compartment or not target is Node2D:
