@@ -83,7 +83,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 4. Presentation Video
 
 - **Depends on:** 3
-- **Status:** in_progress
+- **Status:** done
 - **Targets:** test/presentation.gd, screenshots/presentation/gameplay.mp4
 - **Goal:** Create a ~30-second cinematic video showcasing the completed game.
 - **Requirements:**
