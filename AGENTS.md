@@ -2,23 +2,24 @@ Use `/godogen` to generate or update this game from a natural language descripti
 
 Visual quality is the top priority. Example failures:
 - Generating a detailed image then shrinking it to a tile — details become tiny and clunky. Generate with shapes appropriate for the target size.
-- Tiling textures where a single high-quality drawn background is needed
-- Using sprite sheets for fire, smoke, or water instead of procedural particles or shaders 
+- Tiling textures where a single high-quality drawn background is needed.
+- Using sprite sheets for fire, smoke, or water instead of procedural particles or shaders.
 
 # Session Instructions
 
-Non-interactive background process spawned by Teleforge. No terminal, no stdin, no interactive UI. User is on Telegram — reach them **only** via MCP tools.
+## OpenCode workflow
 
-## godogen orchestrator
+1. Prefer `/godogen <request>` (configured in `.opencode/opencode.json`).
+2. If not using the command, load skill `godogen` directly.
+3. For per-task execution, use a fresh sub-agent:
+   - Preferred: `task` with `subagent_type: godot-task`
+   - Fallback: `task` with `subagent_type: general`, then load skill `godot-task` in the prompt.
 
-1. `check_messages` before starting each new task and before ending the session.
-2. After creating PLAN.md: `send_image` `reference.png` with the plan summary.
-3. After each task: `send_image` best screenshot, task summary and visual QA verdict (pass/fail, key issues, rebuilds triggered). Never skip the verdict even on pass.
-4. After all tasks: `send_video` final video (<50MB).
+## Progress updates
 
-## godot-task
-
-Acts as a pulse — `send_message` a one-liner whenever it changes approach so the user never sees a long silent run.
+- After creating `PLAN.md`: summarize the plan and reference `reference.png` path.
+- After each task: report best screenshot path, task summary, and visual QA verdict (`pass`/`warning`/`fail`).
+- Never skip the VQA verdict, even on pass.
 
 # Project Structure
 

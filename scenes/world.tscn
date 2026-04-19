@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="1_rwgxs"]
+[ext_resource type="Script" path="res://scripts/village.gd" id="2_4wyf3"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_k0juu"]
+vertices = PackedVector2Array(1590, 1590, -1590, 1590, -1590, -1590, 1590, -1590)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-1600, -1600, 1600, -1600, 1600, 1600, -1600, 1600), PackedVector2Array(-150, -150, 150, -150, 150, 150, -150, 150)])
+
+[node name="World" type="Node2D" unique_id=395086707]
+script = ExtResource("1_rwgxs")
+
+[node name="Ground" type="Node2D" parent="." unique_id=1842680333]
+
+[node name="Village" type="Node2D" parent="." unique_id=975165086]
+script = ExtResource("2_4wyf3")
+
+[node name="ResourceNodes" type="Node2D" parent="." unique_id=12383276]
+
+[node name="HazardNodes" type="Node2D" parent="." unique_id=163681909]
+
+[node name="SpawnCorridors" type="Node2D" parent="." unique_id=715917102]
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=1054045568]
+navigation_polygon = SubResource("NavigationPolygon_k0juu")

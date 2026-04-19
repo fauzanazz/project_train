@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/locomotive.gd" id="1_i1geg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b570b"]
+size = Vector2(60, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rkiwd"]
+size = Vector2(64, 32)
+
+[node name="Locomotive" type="CharacterBody2D" unique_id=688784714]
+collision_mask = 18
+script = ExtResource("1_i1geg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1954879496]
+shape = SubResource("RectangleShape2D_b570b")
+
+[node name="BodyDamageArea" type="Area2D" parent="." unique_id=755695572]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=159725280]
+shape = SubResource("RectangleShape2D_rkiwd")
+
+[node name="WeaponSlot" type="Node2D" parent="." unique_id=2008046659]
+
+[node name="UtilitySlot" type="Node2D" parent="." unique_id=1290127816]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=942025763]

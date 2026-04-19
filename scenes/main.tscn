@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world.tscn" id="1_tefeu"]
+[ext_resource type="Script" path="res://scripts/world.gd" id="2_o6xl0"]
+[ext_resource type="PackedScene" path="res://scenes/train.tscn" id="3_tipki"]
+[ext_resource type="Script" path="res://scripts/train.gd" id="4_85g3d"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5_choun"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="6_ya4ey"]
+
+[node name="Main" type="Node2D" unique_id=1391153091]
+
+[node name="World" type="Node2D" parent="." unique_id=395086707 instance=ExtResource("1_tefeu")]
+script = ExtResource("2_o6xl0")
+
+[node name="Train" type="Node2D" parent="." unique_id=2097355688 instance=ExtResource("3_tipki")]
+script = ExtResource("4_85g3d")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=116402604 instance=ExtResource("5_choun")]
+layer = 10
+script = ExtResource("6_ya4ey")

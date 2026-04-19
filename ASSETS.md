@@ -1,0 +1,3 @@
+# Assets
+
+**Art direction:** Bold-outlined 2D top-down sprites with flat shading and exaggerated cartoonist proportions. Thick black outlines on all sprites. Chunky wheels, oversized gun barrels, wobbly zombie limbs. Color language: warm grays and rust orange for the player train (dirty industrial), earthy browns and warm yellows for the village (inviting), desaturated greens and purples for zombies (high-contrast silhouettes), bright saturated gold/green/blue for resource pickups, hard red only for danger indicators. Wasteland ground: muted dirt browns and cracked earth textures. UI: clean black outlines on cream/white panels.

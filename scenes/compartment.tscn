@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/compartment.gd" id="1_75g0s"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cek7t"]
+size = Vector2(50, 28)
+
+[node name="Compartment" type="Node2D" unique_id=745352794]
+script = ExtResource("1_75g0s")
+
+[node name="BodyDamageArea" type="Area2D" parent="." unique_id=1524252087]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=1986697750]
+shape = SubResource("RectangleShape2D_cek7t")
+
+[node name="WeaponSlot" type="Node2D" parent="." unique_id=162362440]
+
+[node name="UtilitySlot" type="Node2D" parent="." unique_id=607518533]
+
+[node name="CargoIndicator" type="Node2D" parent="." unique_id=554571680]

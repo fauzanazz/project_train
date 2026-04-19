@@ -1,0 +1,21 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": [
+      "../.claude/skills"
+    ]
+  },
+  "command": {
+    "godogen": {
+      "description": "Generate or update this game from a natural language description",
+      "template": "Use skill \"godogen\" to generate or update the game. User request:\n\n$ARGUMENTS"
+    }
+  },
+  "agent": {
+    "godot-task": {
+      "description": "Execute one Godot task by loading the godot-task skill",
+      "mode": "subagent",
+      "prompt": "Use skill \"godot-task\" and execute the provided task block exactly. Follow the skill workflow and required completion report format."
+    }
+  }
+}
