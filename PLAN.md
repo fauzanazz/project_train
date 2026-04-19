@@ -101,7 +101,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 5. Fix Movement — A/D Drift & Dual Targeting
 
 - **Depends on:** (none — applies on top of existing code)
-- **Status:** pending
+- **Status:** done
 - **Targets:** scripts/locomotive.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/weapon_mortar.gd, scripts/weapon_taser.gd, scripts/weapon_railgun.gd, scripts/weapon_tesla.gd, scripts/weapon_devastator.gd, project.godot, scripts/hud.gd
 - **Goal:** Replace mouse-steering with A/D keyboard drift control. Change targeting to dual-mode auto-aim: nearest to player center OR nearest to mouse pointer. Mouse pointer acts as a targeting aid, not a steering control.
 - **Requirements:**
@@ -119,7 +119,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 6. Card Upgrade System — Weapon-Specific Level-Up
 
 - **Depends on:** 5
-- **Status:** pending
+- **Status:** done
 - **Targets:** scripts/player_manager.gd, scripts/hud.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/weapon_mortar.gd, scripts/weapon_taser.gd, scripts/weapon_railgun.gd, scripts/weapon_tesla.gd, scripts/weapon_devastator.gd, scripts/modifier_resource_magnet.gd, scripts/modifier_repair_drone.gd, scripts/modifier_shield_bubble.gd
 - **Goal:** Implement a full weapon-specific upgrade card system. On level-up, the player sees 3 cards that can be: (a) upgrade an existing weapon to its next level (applying the specific stat buff from the spec table), (b) a new weapon if slots are empty, or (c) a passive/utility upgrade. Each weapon has 5 levels with distinct named upgrades. Utility modifiers have 3 levels.
 - **Requirements:**

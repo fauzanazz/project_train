@@ -42,3 +42,32 @@
 - `screen_shake.gd` autoload added for heavy-impact feedback; call through singleton instead of direct camera mutation.
 - Projectile visuals and weapon effects (railgun beam, tesla arcs, devastator flash/ring) rely on short-lived draw timers rather than particle assets.
 - Compatibility note: screenshot/video capture is stable when using GPU movie mode (`--write-movie`) and can crash under strict headless dummy renderer.
+
+## Bug Fix Session (2026-04-19)
+
+- All 9 enemy `.tscn` files were missing `[ext_resource]` script references — must add both `[ext_resource]` header AND `script = ExtResource("X")` in node properties
+- `var t := max(...)` Variant inference fails silently in Godot 4.6 — `--headless --quit` only does syntax checking; use `maxf()`/`mini()` with explicit types
+- `class_name` NOT registered during `--headless --quit` or when scripts loaded via `load()` at runtime if base class not preloaded. Solution: `const _Base = preload("res://scripts/enemy_base.gd")` in wave_manager.gd
+- `draw_polygon()` takes at most 4 args in Godot 4.x (points, colors, uvs, texture). Use `draw_polyline()` for outlines
+- Train starts with 0 compartments — auto-spawn 1 in `_ready()` + locomotive fallback cargo storage
+- `_spawning` flag in wave_manager must be reset to false at spawn completion
+
+## Task 5 — A/D Drift & Dual Targeting (2026-04-19)
+
+- Movement changed from mouse-steering to A/D key drift: always moves forward, A/D rotates
+- `modifier_base.gd` has `class_name ModifierBase` with `TargetingMode` enum and static targeting state vars
+- Shared `_find_target(search_range)` in modifier_base.gd used by all weapons — respects active targeting mode
+- TAB toggles between PLAYER_CENTER and MOUSE_POINTER targeting modes
+- Targeting line drawn in locomotive `_draw()` using `ModifierBase.targeting_origin`/`targeting_position`
+- HUD shows "Target: Player" / "Target: Mouse" indicator
+
+## Task 6 — Card Upgrade System (2026-04-19)
+
+- `modifier_base.gd` now has `upgrade_level: int`, `upgrade_names`/`upgrade_descs: PackedStringArray`, `get_max_level()`, `get_next_upgrade_name()`/`get_next_upgrade_desc()`
+- `on_level_up(new_level)` param changed from `upgrade_count` to `new_level` — weapons apply cumulative upgrades idempotently
+- `player_manager.gd` has typed registries (WEAPON_DEFS, UTILITY_DEFS, PASSIVE_DEFS) instead of flat CARD_POOL
+- Card generation scans train for equipped modifiers, builds upgrade cards with specific names/descriptions
+- Each weapon has 5 levels with named upgrades; utilities have 3 levels
+- Weapons use flags (e.g. `dual_barrel`, `barrage`, `overcharge`) for upgrade effects
+- `apply_choice()` dispatches by card type: weapon_upgrade, weapon_new, utility_upgrade, utility_new, passive
+- HUD shows colored icon bars, level arrows (Lv2→3), gold upgrade name, gray description
