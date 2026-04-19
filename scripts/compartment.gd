@@ -48,12 +48,17 @@ func _get_history() -> Array:
 	return []
 
 func _find_locomotive() -> Node:
+	# Walk up to find the Train node, then get its Locomotive child
 	var parent = get_parent()
 	while parent:
-		if parent.has_node("Locomotive"):
-			return parent.get_node("Locomotive")
+		if parent is Node2D and parent.name == "CompartmentContainer":
+			var train = parent.get_parent()
+			if train and train.has_node("Locomotive"):
+				return train.get_node("Locomotive")
 		parent = parent.get_parent()
-	return null
+	# Fallback: search by group
+	var locos = get_tree().get_nodes_in_group("locomotive") if get_tree() else []
+	return locos[0] if locos.size() > 0 else null
 
 func take_damage(amount: float) -> void:
 	hp -= amount
@@ -85,5 +90,40 @@ func attach_modifier(mod: Node) -> void:
 	if mod.has_method("on_attach"):
 		mod.on_attach(self)
 
+func _process(_delta: float) -> void:
+	queue_redraw()
+
 func _draw() -> void:
-	pass  # Visual drawing implemented in Task 1 as custom draw
+	# Cargo box ~50×28, top-down cartoonist style
+	const BODY_COLOR := Color("#7A7875")
+	const OUTLINE_COLOR := Color("#111111")
+	const ACCENT_COLOR := Color("#D2691E")
+	const WHEEL_RIM := Color("#888888")
+	const CARGO_COLORS := {
+		"lumber": Color("#22C55E"),
+		"metal": Color("#EAB308"),
+		"medicine": Color("#3B82F6")
+	}
+
+	# Main box
+	draw_rect(Rect2(-25, -14, 50, 28), BODY_COLOR)
+	draw_rect(Rect2(-25, -14, 50, 28), OUTLINE_COLOR, false, 2.0)
+
+	# Accent marks
+	draw_rect(Rect2(-23, -5, 8, 10), ACCENT_COLOR)
+	draw_rect(Rect2(15, -5, 8, 10), ACCENT_COLOR)
+
+	# Cargo color fill when loaded
+	if not cargo.is_empty() and CARGO_COLORS.has(cargo):
+		var c: Color = CARGO_COLORS[cargo]
+		draw_rect(Rect2(-12, -8, 24, 16), c)
+		draw_rect(Rect2(-12, -8, 24, 16), OUTLINE_COLOR, false, 1.5)
+
+	# 4 small wheels
+	var wheel_positions := [
+		Vector2(-14, -16), Vector2(12, -16),
+		Vector2(-14, 16), Vector2(12, 16)
+	]
+	for wp: Vector2 in wheel_positions:
+		draw_circle(wp, 5.0, OUTLINE_COLOR)
+		draw_circle(wp, 3.5, WHEEL_RIM)

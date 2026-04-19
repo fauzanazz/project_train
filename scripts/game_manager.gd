@@ -10,7 +10,8 @@ signal wave_ended(wave_index: int)
 var is_running: bool = false
 
 func _ready() -> void:
-	pass
+	# Auto-start after a brief delay to let all autoloads initialize
+	get_tree().create_timer(0.5).timeout.connect(func(): start_game())
 
 func start_game() -> void:
 	is_running = true

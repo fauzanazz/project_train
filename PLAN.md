@@ -17,7 +17,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 1. Train Foundation & World
 
 - **Depends on:** (none)
-- **Status:** pending
+- **Status:** in_progress
 - **Targets:** project.godot, scenes/main.tscn, scenes/world.tscn, scenes/train.tscn, scenes/locomotive.tscn, scenes/compartment.tscn, scenes/hud.tscn, scripts/game_manager.gd, scripts/train.gd, scripts/locomotive.gd, scripts/compartment.gd, scripts/world.gd, scripts/village.gd, scripts/resource_node.gd, scripts/hud.gd, scenes/build_*.gd
 - **Goal:** Establish the playable foundation — a steerable cartoonist train with compartment chain physics navigating an open wasteland map with a walled village at center and pulsing resource nodes. No enemies yet; focus on feel, visuals, and the slither.io movement model.
 - **Requirements:**

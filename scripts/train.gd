@@ -23,6 +23,22 @@ func _ready() -> void:
 	_respawn_timer.timeout.connect(_do_respawn)
 	add_child(_respawn_timer)
 
+	locomotive = get_node_or_null("Locomotive")
+
+	# Start train near village gate (south of center)
+	global_position = Vector2(0, 200)
+
+	# Spawn 2 starting compartments
+	var compartment_scene: PackedScene = load("res://scenes/compartment.tscn")
+	add_compartment(compartment_scene)
+	add_compartment(compartment_scene)
+
+	# Give compartments a frame to enter tree, then setup their follow targets
+	await get_tree().process_frame
+	for i in compartments.size():
+		compartments[i].add_to_group("train_body")
+		# Each compartment follows the one ahead; the first follows locomotive
+
 func setup(loco: Node) -> void:
 	locomotive = loco
 
@@ -33,6 +49,12 @@ func add_compartment(compartment_scene: PackedScene) -> void:
 	c.index = compartments.size()
 	get_node("CompartmentContainer").add_child(c)
 	compartments.append(c)
+
+func try_collect_resource(type: String, amount: int) -> bool:
+	for c in compartments:
+		if c.has_method("load_cargo") and c.cargo.is_empty():
+			return c.load_cargo(type, amount)
+	return false
 
 func get_body_damage(current_speed: float) -> float:
 	var speed_ratio: float = current_speed / BASE_SPEED

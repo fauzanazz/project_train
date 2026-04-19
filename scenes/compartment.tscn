@@ -5,17 +5,17 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cek7t"]
 size = Vector2(50, 28)
 
-[node name="Compartment" type="Node2D" unique_id=745352794]
+[node name="Compartment" type="Node2D" unique_id=1801885072]
 script = ExtResource("1_75g0s")
 
-[node name="BodyDamageArea" type="Area2D" parent="." unique_id=1524252087]
+[node name="BodyDamageArea" type="Area2D" parent="." unique_id=1303751829]
 collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=1986697750]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=1238917310]
 shape = SubResource("RectangleShape2D_cek7t")
 
-[node name="WeaponSlot" type="Node2D" parent="." unique_id=162362440]
+[node name="WeaponSlot" type="Node2D" parent="." unique_id=567164593]
 
-[node name="UtilitySlot" type="Node2D" parent="." unique_id=607518533]
+[node name="UtilitySlot" type="Node2D" parent="." unique_id=993022128]
 
-[node name="CargoIndicator" type="Node2D" parent="." unique_id=554571680]
+[node name="CargoIndicator" type="Node2D" parent="." unique_id=1322319365]

@@ -4,11 +4,11 @@
 [ext_resource type="PackedScene" path="res://scenes/locomotive.tscn" id="2_muh0j"]
 [ext_resource type="Script" path="res://scripts/locomotive.gd" id="3_o1hdh"]
 
-[node name="Train" type="Node2D" unique_id=2097355688]
+[node name="Train" type="Node2D" unique_id=1549088052]
 script = ExtResource("1_6b7q7")
 
-[node name="Locomotive" type="CharacterBody2D" parent="." unique_id=688784714 instance=ExtResource("2_muh0j")]
+[node name="Locomotive" type="CharacterBody2D" parent="." unique_id=1577226289 instance=ExtResource("2_muh0j")]
 collision_mask = 18
 script = ExtResource("3_o1hdh")
 
-[node name="CompartmentContainer" type="Node2D" parent="." unique_id=768016024]
+[node name="CompartmentContainer" type="Node2D" parent="." unique_id=31353930]
