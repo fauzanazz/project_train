@@ -21,6 +21,9 @@ var slot_type: SlotType = SlotType.WEAPON
 
 var _compartment: Node = null
 var _upgrade_count: int = 0
+var upgrade_level: int = 1
+var upgrade_names: PackedStringArray = []
+var upgrade_descs: PackedStringArray = []
 
 func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	_compartment = compartment
@@ -31,14 +34,41 @@ func on_detach() -> void:
 func tick(dt: float) -> void:
 	pass
 
-func on_level_up(upgrade_count: int) -> void:
-	_upgrade_count = upgrade_count
+func on_level_up(new_level: int) -> void:
+	upgrade_level = new_level
+	_upgrade_count = new_level - 1
+
+func get_max_level() -> int:
+	return 5
+
+func get_next_upgrade_name() -> String:
+	if upgrade_level >= get_max_level():
+		return ""
+	var idx := upgrade_level - 1
+	if idx < upgrade_names.size():
+		return upgrade_names[idx]
+	return ""
+
+func get_next_upgrade_desc() -> String:
+	if upgrade_level >= get_max_level():
+		return ""
+	var idx := upgrade_level - 1
+	if idx < upgrade_descs.size():
+		return upgrade_descs[idx]
+	return ""
+
+func get_upgrade_description(level: int) -> String:
+	var idx := level - 2
+	if idx >= 0 and idx < upgrade_descs.size():
+		return upgrade_descs[idx]
+	return ""
 
 func serialize() -> Dictionary:
-	return {"id": id, "upgrade_count": _upgrade_count}
+	return {"id": id, "upgrade_count": _upgrade_count, "upgrade_level": upgrade_level}
 
 func deserialize(data: Dictionary) -> void:
 	_upgrade_count = data.get("upgrade_count", 0)
+	upgrade_level = data.get("upgrade_level", 1)
 
 func _find_target(search_range: float) -> Node2D:
 	if not _compartment:

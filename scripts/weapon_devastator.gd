@@ -4,7 +4,7 @@ extends "res://scripts/modifier_base.gd"
 
 const BASE_DAMAGE: float = 200.0
 const BASE_FIRE_RATE: float = 6.0
-const AOE_RADIUS: float = 800.0  # effectively full screen
+const AOE_RADIUS: float = 800.0
 
 var damage: float = BASE_DAMAGE
 var fire_rate: float = BASE_FIRE_RATE
@@ -15,6 +15,8 @@ func _init() -> void:
 	display_name = "Devastator"
 	tier = ModifierTier.ELITE
 	slot_type = SlotType.WEAPON
+	upgrade_names = PackedStringArray(["Reinforced Chamber", "Quick Load", "Heavy Payload", "Total Annihilation"])
+	upgrade_descs = PackedStringArray(["+50 damage", "Cooldown -0.5s", "+50 damage, -0.5s", "+50 damage, -0.5s"])
 
 func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	super(compartment, slot_index)
@@ -27,7 +29,6 @@ func tick(dt: float) -> void:
 	var enemies = _compartment.get_tree().get_nodes_in_group("enemies") if _compartment and _compartment.get_tree() else []
 	if enemies.is_empty():
 		return
-	# Full screen AoE — damage all enemies
 	var origin: Vector2 = _compartment.global_position if _compartment else Vector2.ZERO
 	for e in enemies:
 		if not e is Node2D:
@@ -35,9 +36,8 @@ func tick(dt: float) -> void:
 		var dist: float = e.global_position.distance_to(origin)
 		if dist <= AOE_RADIUS:
 			if e.has_method("take_damage"):
-				var falloff: float = 1.0 - (dist / AOE_RADIUS) * 0.5  # 50-100% based on distance
+				var falloff: float = 1.0 - (dist / AOE_RADIUS) * 0.5
 				e.take_damage(damage * falloff, "explosive")
-	# Visual: screen flash + expanding ring + camera shake
 	_spawn_devastator_effect(origin)
 	ScreenShake.shake(0.4, 15.0)
 	_cooldown = fire_rate
@@ -45,12 +45,10 @@ func tick(dt: float) -> void:
 func _spawn_devastator_effect(pos: Vector2) -> void:
 	if not get_tree() or not get_tree().current_scene:
 		return
-	# Screen flash
 	var flash = Node2D.new()
 	flash.set_script(_create_flash_script())
 	flash.global_position = Vector2.ZERO
 	get_tree().current_scene.add_child(flash)
-	# Expanding ring
 	var ring = Node2D.new()
 	ring.set_script(_create_ring_script(pos))
 	ring.global_position = Vector2.ZERO
@@ -96,3 +94,8 @@ func _draw():
 	script.source_code = src
 	script.reload()
 	return script
+
+func on_level_up(new_level: int) -> void:
+	super(new_level)
+	damage = BASE_DAMAGE + (new_level - 1) * 50.0
+	fire_rate = maxf(2.0, BASE_FIRE_RATE - (new_level - 1) * 0.5)

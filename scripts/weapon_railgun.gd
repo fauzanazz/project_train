@@ -9,6 +9,8 @@ const BASE_RANGE: float = 600.0
 var damage: float = BASE_DAMAGE
 var fire_rate: float = BASE_FIRE_RATE
 var range_px: float = BASE_RANGE
+var phase_round: bool = false
+var overcharge: bool = false
 var _cooldown: float = 0.0
 var _flash_timer: float = 0.0
 var _flash_end: Vector2 = Vector2.ZERO
@@ -18,13 +20,15 @@ func _init() -> void:
 	display_name = "Rail Cannon"
 	tier = ModifierTier.ADVANCED
 	slot_type = SlotType.WEAPON
+	upgrade_names = PackedStringArray(["Sabot Core", "Magnetic Accelerator", "Phase Round", "Overcharge"])
+	upgrade_descs = PackedStringArray(["Damage +30", "Cooldown 3.5s → 2.5s", "Full pierce damage", "2s charge = 3x damage"])
 
 func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	super(compartment, slot_index)
 	_cooldown = 0.0
 
 func tick(dt: float) -> void:
-	_flash_timer = max(0.0, _flash_timer - dt)
+	_flash_timer = maxf(0.0, _flash_timer - dt)
 	_cooldown -= dt
 	if _cooldown > 0.0:
 		return
@@ -40,23 +44,26 @@ func _fire_at(target: Node) -> void:
 	var start_pos: Vector2 = _compartment.global_position
 	var dir: Vector2 = _compartment.global_position.direction_to(target.global_position)
 	var end_pos: Vector2 = start_pos + dir * range_px
-	# Instant raycast — damage all enemies in line
+	var effective_damage: float = damage
+	if overcharge:
+		effective_damage *= 3.0
 	var enemies = _compartment.get_tree().get_nodes_in_group("enemies") if _compartment.get_tree() else []
 	var hit_count: int = 0
 	for e in enemies:
 		if not e is Node2D:
 			continue
-		# Project enemy position onto the ray
 		var to_enemy: Vector2 = e.global_position - start_pos
 		var projection: float = to_enemy.dot(dir)
 		if projection < 0 or projection > range_px:
 			continue
 		var closest_point: Vector2 = start_pos + dir * projection
 		var dist_to_line: float = e.global_position.distance_to(closest_point)
+		var hit_dmg: float = effective_damage
+		if not phase_round and hit_count > 0:
+			hit_dmg *= 0.8
 		if dist_to_line < 20.0 and e.has_method("take_damage"):
-			e.take_damage(damage, "kinetic")
+			e.take_damage(hit_dmg, "kinetic")
 			hit_count += 1
-	# Visual: bright white line flash
 	_flash_timer = 0.15
 	_flash_end = end_pos
 	_spawn_rail_effect(start_pos, end_pos)
@@ -94,3 +101,18 @@ func _draw():
 	script.source_code = src
 	script.reload()
 	return script
+
+func on_level_up(new_level: int) -> void:
+	super(new_level)
+	damage = BASE_DAMAGE
+	fire_rate = BASE_FIRE_RATE
+	phase_round = false
+	overcharge = false
+	if new_level >= 2:
+		damage += 30.0
+	if new_level >= 3:
+		fire_rate = 2.5
+	if new_level >= 4:
+		phase_round = true
+	if new_level >= 5:
+		overcharge = true

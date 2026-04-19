@@ -1,18 +1,20 @@
 extends "res://scripts/modifier_base.gd"
 ## res://scripts/weapon_tesla.gd
-## Tesla Coil — electric, chains to up to 3 nearby enemies within 150px. Lightning arc visual.
+## Tesla Coil — electric, chains to nearby enemies within range. Lightning arc visual.
 
 const BASE_DAMAGE: float = 30.0
 const BASE_FIRE_RATE: float = 1.2
 const BASE_RANGE: float = 280.0
-const CHAIN_COUNT: int = 3
 const CHAIN_RANGE: float = 150.0
 
 var damage: float = BASE_DAMAGE
 var fire_rate: float = BASE_FIRE_RATE
 var range_px: float = BASE_RANGE
+var chain_count: int = 3
+var ground_arc: bool = false
+var storm_core: bool = false
 var _cooldown: float = 0.0
-var _arc_points: Array = []  # Visual: [{from, to, timer}]
+var _arc_points: Array = []
 var _arc_display_time: float = 0.3
 
 func _init() -> void:
@@ -20,13 +22,14 @@ func _init() -> void:
 	display_name = "Tesla Coil"
 	tier = ModifierTier.ADVANCED
 	slot_type = SlotType.WEAPON
+	upgrade_names = PackedStringArray(["Extended Coil", "Surge Capacitor", "Ground Arc", "Storm Core"])
+	upgrade_descs = PackedStringArray(["Chains to 5 enemies", "Damage +40%", "Electric ground patch", "Unlimited chain range"])
 
 func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	super(compartment, slot_index)
 	_cooldown = 0.0
 
 func tick(dt: float) -> void:
-	# Decay arc display timers
 	for arc in _arc_points:
 		arc["timer"] -= dt
 	_arc_points = _arc_points.filter(func(a): return a["timer"] > 0.0)
@@ -44,11 +47,9 @@ func _chain_lightning(first_target: Node) -> void:
 	var hit: Array = [first_target]
 	if first_target.has_method("take_damage"):
 		first_target.take_damage(damage, "electric")
-	# Visual arc from weapon to first target
 	_add_arc(origin, first_target.global_position if first_target is Node2D else origin)
-	# Chain to nearby
 	var source: Node2D = first_target as Node2D
-	for _i in CHAIN_COUNT - 1:
+	for _i in chain_count - 1:
 		var next = _find_chain_target(source, hit)
 		if not next:
 			break
@@ -60,7 +61,6 @@ func _chain_lightning(first_target: Node) -> void:
 
 func _add_arc(from: Vector2, to: Vector2) -> void:
 	_arc_points.append({"from": from, "to": to, "timer": _arc_display_time})
-	# Also spawn a floating lightning effect for better visibility
 	_spawn_lightning_effect(from, to)
 
 func _spawn_lightning_effect(from: Vector2, to: Vector2) -> void:
@@ -79,7 +79,6 @@ func _generate_lightning_points(from: Vector2, to: Vector2) -> Array:
 	for i in range(1, segments):
 		var t: float = float(i) / segments
 		var point := from + dir * t
-		# Add perpendicular offset for jagged lightning
 		var perp := Vector2(-dir.y, dir.x).normalized()
 		point += perp * randf_range(-12.0, 12.0)
 		points.append(point)
@@ -90,8 +89,8 @@ func _create_lightning_script(points: Array) -> Script:
 	var pts_str := "var _points := ["
 	for i in points.size():
 		if i > 0:
-		pts_str += ", "
-	pts_str += "Vector2(%f, %f)" % [points[i].x, points[i].y]
+			pts_str += ", "
+		pts_str += "Vector2(%f, %f)" % [points[i].x, points[i].y]
 	pts_str += "]"
 	var src = "
 extends Node2D
@@ -121,7 +120,8 @@ func _draw():
 func _find_chain_target(source: Node2D, exclude: Array) -> Node:
 	var enemies = _compartment.get_tree().get_nodes_in_group("enemies") if _compartment.get_tree() else []
 	var nearest: Node = null
-	var nearest_dist: float = CHAIN_RANGE * CHAIN_RANGE
+	var effective_range: float = CHAIN_RANGE if not storm_core else 9999.0
+	var nearest_dist: float = effective_range * effective_range
 	for e in enemies:
 		if e in exclude or not e is Node2D:
 			continue
@@ -130,3 +130,19 @@ func _find_chain_target(source: Node2D, exclude: Array) -> Node:
 			nearest_dist = d
 			nearest = e
 	return nearest
+
+func on_level_up(new_level: int) -> void:
+	super(new_level)
+	damage = BASE_DAMAGE
+	fire_rate = BASE_FIRE_RATE
+	chain_count = 3
+	ground_arc = false
+	storm_core = false
+	if new_level >= 2:
+		chain_count = 5
+	if new_level >= 3:
+		damage = BASE_DAMAGE * 1.4
+	if new_level >= 4:
+		ground_arc = true
+	if new_level >= 5:
+		storm_core = true

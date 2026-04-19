@@ -162,20 +162,54 @@ func _update_level_up_panel() -> void:
 			child.queue_free()
 	if _pending_choices.size() == 0:
 		return
+	var type_colors := {
+		"weapon_upgrade": Color("#FF6B35"),
+		"weapon_new": Color("#4ECDC4"),
+		"utility_upgrade": Color("#45B7D1"),
+		"utility_new": Color("#96CEB4"),
+		"passive": Color("#FFEAA7"),
+	}
 	# Draw level-up cards
 	for i in _pending_choices.size():
 		var choice = _pending_choices[i]
-		var card = VBoxContainer.new()
+		var card = HBoxContainer.new()
 		card.name = "Card%d" % i
-		card.custom_minimum_size = Vector2(90, 80)
+		card.custom_minimum_size = Vector2(220, 90)
+		# Colored icon bar
+		var icon = ColorRect.new()
+		icon.custom_minimum_size = Vector2(12, 60)
+		var card_type: String = choice.get("type", "passive")
+		icon.color = type_colors.get(card_type, Color.WHITE)
+		card.add_child(icon)
+		# Text content
+		var content = VBoxContainer.new()
+		content.custom_minimum_size = Vector2(200, 80)
+		# Name with level info
 		var name_lbl = Label.new()
-		name_lbl.text = "%d: %s" % [i + 1, choice.get("name", "???")]
+		var name_text: String = "%d: %s" % [i + 1, choice.get("name", "???")]
+		if choice.has("current_level"):
+			name_text += " Lv%d→%d" % [choice["current_level"], choice["next_level"]]
+		name_lbl.text = name_text
 		name_lbl.add_theme_color_override("font_color", Color.WHITE)
-		card.add_child(name_lbl)
-		var desc_lbl = Label.new()
-		desc_lbl.text = choice.get("desc", "")
-		desc_lbl.add_theme_color_override("font_color", Color("#AAAAAA"))
-		card.add_child(desc_lbl)
+		content.add_child(name_lbl)
+		# Upgrade name (gold)
+		if choice.has("upgrade_name") and choice["upgrade_name"] != "":
+			var upgrade_lbl = Label.new()
+			upgrade_lbl.text = choice["upgrade_name"]
+			upgrade_lbl.add_theme_color_override("font_color", Color("#FFD700"))
+			content.add_child(upgrade_lbl)
+		# Description
+		var desc_text: String = ""
+		if choice.has("upgrade_desc") and choice["upgrade_desc"] != "":
+			desc_text = choice["upgrade_desc"]
+		elif choice.has("desc"):
+			desc_text = choice["desc"]
+		if desc_text != "":
+			var desc_lbl = Label.new()
+			desc_lbl.text = desc_text
+			desc_lbl.add_theme_color_override("font_color", Color("#AAAAAA"))
+			content.add_child(desc_lbl)
+		card.add_child(content)
 		level_up_panel.add_child(card)
 	# Timer display
 	var timer_lbl = level_up_panel.get_node_or_null("TimerLabel")

@@ -4,21 +4,24 @@ extends "res://scripts/modifier_base.gd"
 
 const BASE_DAMAGE_PER_SEC: float = 5.0
 const BASE_RANGE: float = 150.0
-const CONE_ANGLE: float = 0.6  # radians half-angle
+const BASE_CONE_ANGLE: float = 0.6
 
 var damage_per_sec: float = BASE_DAMAGE_PER_SEC
 var range_px: float = BASE_RANGE
-var _flame_area: Area2D = null
+var cone_angle: float = BASE_CONE_ANGLE
+var sticky_fuel: bool = false
+var death_explosion: bool = false
 
 func _init() -> void:
 	id = "flamethrower_mk1"
 	display_name = "Flamethrower"
 	tier = ModifierTier.BASIC
 	slot_type = SlotType.WEAPON
+	upgrade_names = PackedStringArray(["Extended Nozzle", "Sticky Fuel", "Wide Cone", "Infernal Pressure"])
+	upgrade_descs = PackedStringArray(["Range +40%", "Burn lingers 2s", "Cone angle +50%", "Damage +100%, death explosion"])
 
 func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	super(compartment, slot_index)
-	# Cone AoE constructed at runtime in Task 2
 
 func tick(dt: float) -> void:
 	if not _compartment:
@@ -31,12 +34,24 @@ func tick(dt: float) -> void:
 		if to_e.length() > range_px:
 			continue
 		var angle_diff: float = abs(to_e.angle() - _compartment.rotation)
-		if angle_diff > CONE_ANGLE:
+		if angle_diff > cone_angle:
 			continue
 		if e.has_method("take_damage"):
 			e.take_damage(damage_per_sec * dt, "fire")
 
-func on_level_up(upgrade_count: int) -> void:
-	super(upgrade_count)
-	damage_per_sec = BASE_DAMAGE_PER_SEC + upgrade_count * 2.0
-	range_px = BASE_RANGE + upgrade_count * 20.0
+func on_level_up(new_level: int) -> void:
+	super(new_level)
+	damage_per_sec = BASE_DAMAGE_PER_SEC
+	range_px = BASE_RANGE
+	cone_angle = BASE_CONE_ANGLE
+	sticky_fuel = false
+	death_explosion = false
+	if new_level >= 2:
+		range_px *= 1.4
+	if new_level >= 3:
+		sticky_fuel = true
+	if new_level >= 4:
+		cone_angle *= 1.5
+	if new_level >= 5:
+		damage_per_sec *= 2.0
+		death_explosion = true
