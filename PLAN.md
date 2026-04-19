@@ -17,7 +17,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 1. Train Foundation & World
 
 - **Depends on:** (none)
-- **Status:** in_progress
+- **Status:** done
 - **Targets:** project.godot, scenes/main.tscn, scenes/world.tscn, scenes/train.tscn, scenes/locomotive.tscn, scenes/compartment.tscn, scenes/hud.tscn, scripts/game_manager.gd, scripts/train.gd, scripts/locomotive.gd, scripts/compartment.gd, scripts/world.gd, scripts/village.gd, scripts/resource_node.gd, scripts/hud.gd, scenes/build_*.gd
 - **Goal:** Establish the playable foundation — a steerable cartoonist train with compartment chain physics navigating an open wasteland map with a walled village at center and pulsing resource nodes. No enemies yet; focus on feel, visuals, and the slither.io movement model.
 - **Requirements:**
@@ -38,7 +38,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 2. Combat, Enemies & Game Loop
 
 - **Depends on:** 1
-- **Status:** pending
+- **Status:** in_progress
 - **Targets:** scenes/enemy_base.tscn, scenes/enemy_shambler.tscn, scenes/enemy_runner.tscn, scenes/enemy_bloater.tscn, scenes/enemy_crawler.tscn, scenes/projectile.tscn, scenes/weapon_gatling.tscn, scenes/weapon_flamethrower.tscn, scripts/game_manager.gd, scripts/enemy_base.gd, scripts/enemy_shambler.gd, scripts/enemy_runner.gd, scripts/enemy_bloater.gd, scripts/enemy_crawler.gd, scripts/wave_manager.gd, scripts/difficulty_manager.gd, scripts/player_manager.gd, scripts/resource_manager.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/level_up_ui.gd, scripts/village.gd
 - **Goal:** Full core game loop — all 4 basic zombie types with AI, wave spawning with escalating difficulty, dual economy running end-to-end, body contact combat, two starter weapons with auto-aim, level-up card system, and village tier 1–2 upgrades with turrets. Win/lose conditions active.
 - **Requirements:**

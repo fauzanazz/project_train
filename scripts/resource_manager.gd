@@ -41,12 +41,20 @@ func _check_upgrade() -> void:
 		return
 	var next: Dictionary = TIER_THRESHOLDS[village_tier + 1]
 	if lumber >= next.get("lumber", 0) and metal >= next.get("metal", 0) and medicine >= next.get("medicine", 0):
+		# Deduct resources
+		lumber -= next.get("lumber", 0)
+		metal -= next.get("metal", 0)
+		medicine -= next.get("medicine", 0)
 		village_tier += 1
 		village_upgraded.emit(village_tier)
+		resources_changed.emit(lumber, metal, medicine)
 
 func _on_wave_ended(_wave: int) -> void:
-	# Passive generator ticks added in Task 2
-	pass
+	# Passive resource generation between waves at higher tiers
+	if village_tier >= 3:
+		lumber += 5
+		metal += 3
+		resources_changed.emit(lumber, metal, medicine)
 
 func _on_zombie_killed(_xp: int, _position: Vector2, resource_drop: Dictionary) -> void:
 	if resource_drop.is_empty():

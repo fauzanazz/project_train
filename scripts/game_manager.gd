@@ -8,17 +8,19 @@ signal wave_started(wave_index: int)
 signal wave_ended(wave_index: int)
 
 var is_running: bool = false
+var _game_over_shown: bool = false
 
 func _ready() -> void:
-	# Auto-start after a brief delay to let all autoloads initialize
 	get_tree().create_timer(0.5).timeout.connect(func(): start_game())
 
 func start_game() -> void:
 	is_running = true
+	_game_over_shown = false
 	game_started.emit()
 
 func end_game(wave_index: int) -> void:
 	is_running = false
+	_game_over_shown = true
 	game_over.emit(wave_index)
 
 func _on_village_destroyed() -> void:

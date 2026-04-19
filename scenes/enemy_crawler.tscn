@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_crawler.gd" id="1_igo4f"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gr1st"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cr8ov"]
+radius = 12.0
+
+[node name="EnemyCrawler" type="CharacterBody2D" unique_id=916503149]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_igo4f")
+max_hp = 20.0
+base_speed = 90.0
+body_damage = 4.0
+wall_damage = 2.0
+xp_value = 12
+ai_type = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1561824568]
+shape = SubResource("CircleShape2D_gr1st")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1887568032]
+path_desired_distance = 10.0
+
+[node name="HitArea" type="Area2D" parent="." unique_id=658987030]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1066991433]
+shape = SubResource("CircleShape2D_cr8ov")
+
+[node name="HPBar" type="Node2D" parent="." unique_id=1473104298]

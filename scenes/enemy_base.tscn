@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_base.gd" id="1_fr7lv"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sw0xa"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_j1ss0"]
+radius = 14.0
+
+[node name="EnemyBase" type="CharacterBody2D" unique_id=1980935855]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_fr7lv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096856911]
+shape = SubResource("CircleShape2D_sw0xa")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1664614401]
+path_desired_distance = 10.0
+
+[node name="HitArea" type="Area2D" parent="." unique_id=752739522]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=26590967]
+shape = SubResource("CircleShape2D_j1ss0")
+
+[node name="HPBar" type="Node2D" parent="." unique_id=1317679319]

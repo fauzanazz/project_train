@@ -13,8 +13,8 @@ extends CanvasLayer
 
 var _level_up_timer: float = 0.0
 var _pending_choices: Array = []
-
-# Mini-map draw node
+var _game_over_visible: bool = false
+var _game_over_wave: int = 0
 var _mini_map_draw: Node2D = null
 
 func _ready() -> void:
@@ -27,8 +27,7 @@ func _ready() -> void:
 	GameManager.game_over.connect(_on_game_over)
 	if level_up_panel:
 		level_up_panel.hide()
-
-	# Build mini-map draw node inside the SubViewport
+	# Build mini-map draw node
 	if mini_map:
 		var sv = mini_map.get_node_or_null("SubViewport")
 		if not sv:
@@ -41,8 +40,6 @@ func _ready() -> void:
 		_mini_map_draw.name = "MiniMapDraw"
 		_mini_map_draw.set_script(_create_minimap_script())
 		sv.add_child(_mini_map_draw)
-
-	# Connect village damage signal (deferred since Village is a scene node)
 	_connect_village_signal.call_deferred()
 
 func _connect_village_signal() -> void:
@@ -54,20 +51,19 @@ func _create_minimap_script():
 	return _create_minimap_script_inner()
 
 func _process(delta: float) -> void:
-	if _level_up_timer > 0.0:
+	if _level_up_timer > 0.0 and _pending_choices.size() > 0:
 		_level_up_timer -= delta
 		if _level_up_timer <= 0.0:
 			_auto_select_level_up()
-	# Update wave timer display
+	# Update wave timer
 	var t: float = WaveManager.get_wave_time_remaining()
 	if wave_timer_label:
 		wave_timer_label.text = "Next: %.0fs" % t if t > 0.0 else ""
-	# Update village HP bar directly from village node
 	_update_village_hp_bar()
-	# Update cargo display from train compartments
 	_update_cargo_display()
-	# Draw mini-map
 	_draw_minimap()
+	_update_level_up_panel()
+	_update_game_over()
 
 func _on_xp_changed(new_xp: int, max_xp: int) -> void:
 	if xp_bar:
@@ -95,37 +91,51 @@ func _on_wave_started(wave_index: int) -> void:
 func _on_wave_ended(_wave_index: int) -> void:
 	pass
 
-func _on_resources_changed(_lumber: int, _metal: int, _medicine: int) -> void:
+func _on_resources_changed(lumber: int, metal: int, medicine: int) -> void:
 	pass
 
-func _on_game_over(_wave_index: int) -> void:
-	pass
+func _on_game_over(wave_index: int) -> void:
+	_game_over_visible = true
+	_game_over_wave = wave_index
 
 func _auto_select_level_up() -> void:
 	_level_up_timer = 0.0
+	_pending_choices = []
 	if level_up_panel:
 		level_up_panel.hide()
 
+func _input(event: InputEvent) -> void:
+	if _pending_choices.size() > 0 and _level_up_timer > 0.0:
+		var idx := -1
+		if event.is_action_pressed("level_up_1"):
+			idx = 0
+		elif event.is_action_pressed("level_up_2"):
+			idx = 1
+		elif event.is_action_pressed("level_up_3"):
+			idx = 2
+		if idx >= 0 and idx < _pending_choices.size():
+			PlayerManager.apply_choice(_pending_choices[idx])
+			_pending_choices = []
+			_level_up_timer = 0.0
+			if level_up_panel:
+				level_up_panel.hide()
+
 func _update_village_hp_bar() -> void:
 	var village = get_tree().get_first_node_in_group("village") if get_tree() else null
-	if village and village.has_method("get") and "hp" in village and village_hp_bar:
+	if village and "hp" in village and village_hp_bar:
 		village_hp_bar.max_value = village.max_hp if "max_hp" in village else 500.0
 		village_hp_bar.value = village.hp
 
 func _update_cargo_display() -> void:
 	if not cargo_display:
 		return
-	# Clear existing
 	for child in cargo_display.get_children():
 		child.queue_free()
-	var train = get_tree().get_first_node_in_group("locomotive") if get_tree() else null
-	if not train:
+	var loco = get_tree().get_first_node_in_group("locomotive") if get_tree() else null
+	if not loco:
 		return
-	# Find Train parent
-	var train_root = train.get_parent() if train else null
-	if not train_root or not train_root.has_method("get"):
-		return
-	if not "compartments" in train_root:
+	var train_root = loco.get_parent() if loco else null
+	if not train_root or not "compartments" in train_root:
 		return
 	for comp in train_root.compartments:
 		var label = Label.new()
@@ -137,12 +147,62 @@ func _update_cargo_display() -> void:
 		cargo_display.add_child(label)
 
 func _draw_minimap() -> void:
-	if not _mini_map_draw:
+	if _mini_map_draw:
+		_mini_map_draw.queue_redraw()
+
+func _update_level_up_panel() -> void:
+	if not level_up_panel:
 		return
-	_mini_map_draw.queue_redraw()
+	# Clear existing card labels
+	for child in level_up_panel.get_children():
+		if child.name.begins_with("Card"):
+			child.queue_free()
+	if _pending_choices.size() == 0:
+		return
+	# Draw level-up cards
+	for i in _pending_choices.size():
+		var choice = _pending_choices[i]
+		var card = VBoxContainer.new()
+		card.name = "Card%d" % i
+		card.custom_minimum_size = Vector2(90, 80)
+		var name_lbl = Label.new()
+		name_lbl.text = "%d: %s" % [i + 1, choice.get("name", "???")]
+		name_lbl.add_theme_color_override("font_color", Color.WHITE)
+		card.add_child(name_lbl)
+		var desc_lbl = Label.new()
+		desc_lbl.text = choice.get("desc", "")
+		desc_lbl.add_theme_color_override("font_color", Color("#AAAAAA"))
+		card.add_child(desc_lbl)
+		level_up_panel.add_child(card)
+	# Timer display
+	var timer_lbl = level_up_panel.get_node_or_null("TimerLabel")
+	if not timer_lbl:
+		timer_lbl = Label.new()
+		timer_lbl.name = "TimerLabel"
+		level_up_panel.add_child(timer_lbl)
+	timer_lbl.text = "%.0fs" % _level_up_timer
+
+func _update_game_over() -> void:
+	if not _game_over_visible:
+		return
+	# Find or create game over label
+	var ctrl = $Control as Control
+	if not ctrl:
+		return
+	var go_label = ctrl.get_node_or_null("GameOverLabel")
+	if not go_label:
+		go_label = Label.new()
+		go_label.name = "GameOverLabel"
+		go_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		go_label.add_theme_color_override("font_color", Color.RED)
+		go_label.add_theme_font_size_override("font_size", 32)
+		ctrl.add_child(go_label)
+	go_label.text = "GAME OVER — Wave %d" % _game_over_wave
+	go_label.set_anchors_preset(Control.PRESET_CENTER)
+	go_label.position = Vector2(-100, -20)
+	go_label.custom_minimum_size = Vector2(200, 44)
 
 func _create_minimap_script_inner() -> Script:
-	# Dynamically create a mini-map drawing script
 	var src = "
 extends Node2D
 func _draw() -> void:
@@ -150,25 +210,25 @@ func _draw() -> void:
 	var map_scale := 180.0 / (map_half * 2.0)
 	var village = get_tree().get_first_node_in_group('village') if get_tree() else null
 	var loco = get_tree().get_first_node_in_group('locomotive') if get_tree() else null
-	# Background
 	draw_rect(Rect2(-90, -90, 180, 180), Color('#3A3020'))
-	# Village dot
 	if village:
 		var vp = village.global_position * map_scale
-		draw_circle(vp + Vector2(0, 0), 6.0, Color('#8B7355'))
-	# Train dot
+		draw_rect(Rect2(vp.x - 10, vp.y - 10, 20, 20), Color('#8B7355'))
 	if loco:
 		var tp = loco.global_position * map_scale
 		draw_circle(tp, 4.0, Color('#D2691E'))
-	# Resource dots
 	var nodes = get_tree().get_nodes_in_group('resource_nodes') if get_tree() else []
 	var type_colors := {'lumber': Color('#22C55E'), 'metal': Color('#EAB308'), 'medicine': Color('#3B82F6')}
 	for rn in nodes:
-		if not rn is Node2D:
-			continue
+		if not rn is Node2D: continue
 		var rp = rn.global_position * map_scale
 		var c = type_colors.get(rn.resource_type, Color.GRAY)
 		draw_circle(rp, 2.5 if not rn.depleted else 1.5, c if not rn.depleted else Color.GRAY)
+	var enemies = get_tree().get_nodes_in_group('enemies') if get_tree() else []
+	for e in enemies:
+		if not e is Node2D: continue
+		var ep = e.global_position * map_scale
+		draw_circle(ep, 1.5, Color('#FF4444'))
 "
 	var script = GDScript.new()
 	script.source_code = src

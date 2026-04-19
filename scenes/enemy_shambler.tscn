@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_shambler.gd" id="1_y5hqy"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wd45h"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_v6h3f"]
+radius = 14.0
+
+[node name="EnemyShambler" type="CharacterBody2D" unique_id=1439076034]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_y5hqy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2058816438]
+shape = SubResource("CircleShape2D_wd45h")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=401317361]
+path_desired_distance = 10.0
+
+[node name="HitArea" type="Area2D" parent="." unique_id=888774734]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1356432142]
+shape = SubResource("CircleShape2D_v6h3f")
+
+[node name="HPBar" type="Node2D" parent="." unique_id=460317361]

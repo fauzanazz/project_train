@@ -8,21 +8,21 @@ size = Vector2(60, 28)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rkiwd"]
 size = Vector2(64, 32)
 
-[node name="Locomotive" type="CharacterBody2D" unique_id=1577226289]
+[node name="Locomotive" type="CharacterBody2D" unique_id=1115665137]
 collision_mask = 18
 script = ExtResource("1_i1geg")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=761433105]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=376530543]
 shape = SubResource("RectangleShape2D_b570b")
 
-[node name="BodyDamageArea" type="Area2D" parent="." unique_id=251597926]
+[node name="BodyDamageArea" type="Area2D" parent="." unique_id=618009011]
 collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=1660286557]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyDamageArea" unique_id=350259340]
 shape = SubResource("RectangleShape2D_rkiwd")
 
-[node name="WeaponSlot" type="Node2D" parent="." unique_id=1404922057]
+[node name="WeaponSlot" type="Node2D" parent="." unique_id=1046437270]
 
-[node name="UtilitySlot" type="Node2D" parent="." unique_id=1936787143]
+[node name="UtilitySlot" type="Node2D" parent="." unique_id=1166573405]
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=2068700294]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=428590788]

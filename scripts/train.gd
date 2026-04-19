@@ -1,6 +1,6 @@
 extends Node2D
 ## res://scripts/train.gd
-## Manages the compartment chain. Owns compartment list, cargo, and body damage calculation.
+## Manages compartment chain, cargo, body damage, weapon tick, and resource delivery.
 
 signal train_destroyed(cargo: Array)
 signal train_respawned
@@ -16,31 +16,141 @@ var locomotive: Node = null
 var _hp: float = 100.0
 var _max_hp: float = 100.0
 var _respawn_timer: Timer
+var _weapon: Node = null
+var body_damage_multiplier: float = 1.0
+var damage_reduction: float = 0.0  # 0 to 0.25 for armor
 
 func _ready() -> void:
 	_respawn_timer = Timer.new()
 	_respawn_timer.one_shot = true
 	_respawn_timer.timeout.connect(_do_respawn)
 	add_child(_respawn_timer)
-
 	locomotive = get_node_or_null("Locomotive")
-
-	# Start train near village gate (south of center)
-	global_position = Vector2(0, 200)
-
-	# Spawn 2 starting compartments
-	var compartment_scene: PackedScene = load("res://scenes/compartment.tscn")
-	add_compartment(compartment_scene)
-	add_compartment(compartment_scene)
-
-	# Give compartments a frame to enter tree, then setup their follow targets
+	# Stagger compartment setup
 	await get_tree().process_frame
-	for i in compartments.size():
-		compartments[i].add_to_group("train_body")
-		# Each compartment follows the one ahead; the first follows locomotive
+	# Give starting weapon — gatling on locomotive
+	_attach_starting_weapon()
 
-func setup(loco: Node) -> void:
-	locomotive = loco
+func _physics_process(delta: float) -> void:
+	# Tick weapon
+	if _weapon and _weapon.has_method("tick"):
+		_weapon.tick(delta)
+	# Tick compartment modifiers
+	for comp in compartments:
+		if comp and comp.modifier and comp.modifier.has_method("tick"):
+			comp.modifier.tick(delta)
+	# Handle body damage to enemies
+	_deal_body_damage(delta)
+	# Check for village gate delivery
+	_check_village_delivery()
+
+func _attach_starting_weapon() -> void:
+	if not locomotive:
+		return
+	var slot = locomotive.get_node_or_null("WeaponSlot")
+	if not slot:
+		return
+	for child in slot.get_children():
+		child.queue_free()
+	var weapon = Node.new()
+	weapon.set_script(load("res://scripts/weapon_gatling.gd"))
+	weapon.name = "Weapon"
+	slot.add_child(weapon)
+	weapon.on_attach(locomotive)
+	if weapon.has_signal("projectile_spawn"):
+		weapon.projectile_spawn.connect(_on_projectile_spawn)
+	_weapon = weapon
+
+func _deal_body_damage(delta: float) -> void:
+	if not locomotive:
+		return
+	var speed_ratio: float = locomotive.get_speed_ratio() if locomotive.has_method("get_speed_ratio") else 1.0
+	if speed_ratio < 0.3:
+		return  # Not moving fast enough for body damage
+	var damage_per_sec := BASE_BODY_DAMAGE * body_damage_multiplier * speed_ratio
+	# Check locomotive body damage area
+	var bda = locomotive.get_node_or_null("BodyDamageArea")
+	if bda and bda is Area2D:
+		for body in bda.get_overlapping_bodies():
+			if body.is_in_group("enemies") and body.has_method("take_damage"):
+				body.take_damage(damage_per_sec * delta, "kinetic")
+				_spawn_sparks_at(body.global_position)
+	# Check compartment body damage areas
+	for comp in compartments:
+		if not comp:
+			continue
+		var comp_bda = comp.get_node_or_null("BodyDamageArea")
+		if comp_bda and comp_bda is Area2D:
+			for body in comp_bda.get_overlapping_bodies():
+				if body.is_in_group("enemies") and body.has_method("take_damage"):
+					body.take_damage(damage_per_sec * delta * 0.7, "kinetic")
+					_spawn_sparks_at(body.global_position)
+
+func _spawn_sparks_at(pos: Vector2) -> void:
+	if not get_tree() or not get_tree().current_scene:
+		return
+	# Throttle spark spawning to avoid performance issues
+	if randf() > 0.15:
+		return
+	var spark = Node2D.new()
+	spark.set_script(_create_spark_script())
+	spark.global_position = pos
+	get_tree().current_scene.add_child(spark)
+
+func _create_spark_script() -> Script:
+	var src = "
+extends Node2D
+var _time := 0.2
+func _process(delta):
+	_time -= delta
+	if _time <= 0:
+		queue_free()
+	queue_redraw()
+func _draw():
+	var alpha := max(0, _time / 0.2)
+	for i in 3:
+		var angle := i * TAU / 3.0 + randf() * 0.5
+		var len := 4.0 + randf() * 4.0
+		draw_line(Vector2.ZERO, Vector2(cos(angle), sin(angle)) * len, Color(1.0, 0.8, 0.2, alpha), 2.0)
+	draw_circle(Vector2.ZERO, 2.0, Color(1.0, 1.0, 0.5, alpha))"
+	var script = GDScript.new()
+	script.source_code = src
+	script.reload()
+	return script
+
+func _check_village_delivery() -> void:
+	if not locomotive:
+		return
+	var village = get_tree().get_first_node_in_group("village") if get_tree() else null
+	if not village:
+		return
+	# Check if locomotive is near village gate (south side)
+	var gate_pos: Vector2 = village.global_position + Vector2(0, 160)
+	var dist: float = locomotive.global_position.distance_to(gate_pos)
+	if dist < 60.0:
+		_deliver_resources()
+
+func _deliver_resources() -> void:
+	# Unload all cargo from compartments
+	for comp in compartments:
+		if not comp:
+			continue
+		if comp.cargo and not comp.cargo.is_empty():
+			ResourceManager.deliver_resources(comp.cargo, comp.cargo_amount)
+			comp.clear_cargo()
+
+func _on_projectile_spawn(origin: Vector2, direction: Vector2, data: Dictionary) -> void:
+	var proj_scene: PackedScene = load("res://scenes/projectile.tscn")
+	if not proj_scene:
+		return
+	var proj = proj_scene.instantiate()
+	proj.setup(origin, direction, data)
+	# Find world node to add projectile to
+	var world = get_tree().current_scene.get_node_or_null("World") if get_tree() else null
+	if world:
+		world.add_child(proj)
+	elif get_tree() and get_tree().current_scene:
+		get_tree().current_scene.add_child(proj)
 
 func add_compartment(compartment_scene: PackedScene) -> void:
 	if compartments.size() >= MAX_COMPARTMENTS:
@@ -58,35 +168,46 @@ func try_collect_resource(type: String, amount: int) -> bool:
 
 func get_body_damage(current_speed: float) -> float:
 	var speed_ratio: float = current_speed / BASE_SPEED
-	return BASE_BODY_DAMAGE * compartments.size() * speed_ratio
+	return BASE_BODY_DAMAGE * body_damage_multiplier * compartments.size() * speed_ratio
 
 func take_damage(amount: float) -> void:
-	_hp -= amount
+	var effective := amount * (1.0 - damage_reduction)
+	_hp -= effective
 	if _hp <= 0.0:
 		_on_destroyed()
 
 func _on_destroyed() -> void:
 	var cargo: Array = _collect_cargo()
 	train_destroyed.emit(cargo)
+	# Hide train, respawn after delay
+	if locomotive:
+		locomotive.visible = false
+		locomotive.set_physics_process(false)
+	for comp in compartments:
+		if is_instance_valid(comp):
+			comp.visible = false
+			comp.set_physics_process(false)
 	_respawn_timer.start(respawn_delay)
-	hide()
 
 func _collect_cargo() -> Array:
 	var cargo: Array = []
 	for c in compartments:
-		if c.has_method("get_cargo"):
+		if c and c.has_method("get_cargo"):
 			cargo.append_array(c.get_cargo())
 			c.clear_cargo()
 	return cargo
 
 func _do_respawn() -> void:
 	_hp = _max_hp
-	# Reposition to village gate — World provides spawn point
-	if get_parent() and get_parent().has_node("World/Village"):
-		var village = get_parent().get_node("World/Village")
-		if locomotive:
-			locomotive.global_position = village.global_position + Vector2(0, 160)
-	show()
+	var village = get_tree().get_first_node_in_group("village") if get_tree() else null
+	if village and locomotive:
+		locomotive.global_position = village.global_position + Vector2(0, 180)
+		locomotive.visible = true
+		locomotive.set_physics_process(true)
+	for comp in compartments:
+		if is_instance_valid(comp):
+			comp.visible = true
+			comp.set_physics_process(true)
 	train_respawned.emit()
 
 func remove_compartment(index: int) -> void:
@@ -94,7 +215,7 @@ func remove_compartment(index: int) -> void:
 		return
 	var c = compartments[index]
 	compartments.remove_at(index)
-	c.queue_free()
-	# Renumber remaining
+	if is_instance_valid(c):
+		c.queue_free()
 	for i in compartments.size():
 		compartments[i].index = i
