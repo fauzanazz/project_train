@@ -39,10 +39,11 @@ func _initialize() -> void:
 	us.name = "UtilitySlot"
 	root.add_child(us)
 
-	# Camera
+	# Camera — physics process mode to match physics interpolation
 	var cam = Camera2D.new()
 	cam.name = "Camera2D"
 	cam.zoom = Vector2(1.0, 1.0)
+	cam.process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	root.add_child(cam)
 
 	_set_owners(root, root)
