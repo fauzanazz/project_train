@@ -143,7 +143,7 @@ func _process_death(delta: float) -> void:
 		return
 	_death_timer -= delta
 	# Squash-and-stretch: scale X to 1.3, Y to 0.7
-	var t := 1.0 - max(0.0, _death_timer) / 0.15
+	var t: float = 1.0 - maxf(0.0, _death_timer) / 0.15
 	_squash_stretch = Vector2(1.0 + 0.3 * t, 1.0 - 0.3 * t)
 	if _death_timer <= 0.0:
 		queue_free()

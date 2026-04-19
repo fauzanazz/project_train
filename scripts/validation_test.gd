@@ -1,19 +1,18 @@
-extends SceneTree
-## res://test/test_task.gd
-## Validation test: verify enemy spawning and resource collection bugs are fixed.
+extends Node
+## res://scripts/validation_test.gd
+## Validation test autoload — checks enemy spawning and resource collection.
+## Added temporarily to project.godot autoloads for validation runs.
 
 var _elapsed: float = 0.0
-const TEST_DURATION: float = 20.0
 var _screenshots_taken: int = 0
 var _validation_results: Dictionary = {}
+const TEST_DURATION: float = 20.0
 
-func _initialize() -> void:
-	var main_scene = load("res://scenes/main.tscn")
-	if main_scene:
-		var main = main_scene.instantiate()
-		root.add_child(main)
+func _ready() -> void:
+	# Wait for game to fully initialize
+	await get_tree().create_timer(0.5).timeout
 
-func _process(delta: float) -> bool:
+func _process(delta: float) -> void:
 	_elapsed += delta
 	
 	# Screenshot 1: t=3s — game started, train visible with compartment
@@ -42,8 +41,7 @@ func _process(delta: float) -> bool:
 		_take_screenshot("04_final")
 		print("\n=== VALIDATION SUMMARY ===")
 		_print_results()
-		quit(0)
-	return false
+		get_tree().quit(0)
 
 func _check_train_compartment() -> void:
 	var train = _find_train()
@@ -62,17 +60,11 @@ func _check_train_compartment() -> void:
 		_validation_results["starting_compartment"] = "FAIL: Train has %d compartments (expected >=1)" % comp_count
 
 func _check_enemies() -> void:
-	var enemies: Array = root.find_children("*", "", true, false)
-	# Filter to enemies group
-	var enemy_group: Array = []
-	for node in enemies:
-		if node.is_in_group("enemies"):
-			enemy_group.append(node)
-	
-	var enemy_count: int = enemy_group.size()
+	var enemies: Array = get_tree().get_nodes_in_group("enemies")
+	var enemy_count: int = enemies.size()
 	if enemy_count > 0:
 		_validation_results["enemy_spawn"] = "PASS: %d enemy(ies) spawned and in 'enemies' group" % enemy_count
-		var e: Node = enemy_group[0]
+		var e: Node = enemies[0]
 		if e.get_script() != null:
 			_validation_results["enemy_script"] = "PASS: Enemy has script attached"
 		else:
@@ -86,7 +78,6 @@ func _check_resource_collection() -> void:
 		_validation_results["resource_collect"] = "FAIL: Train not found"
 		return
 	
-	# Check locomotive cargo or compartment cargo
 	var has_cargo: bool = false
 	if "locomotive_cargo" in train and not train.locomotive_cargo.is_empty():
 		_validation_results["resource_collect"] = "PASS: Locomotive collected %s (x%d)" % [train.locomotive_cargo, train.locomotive_cargo_amount]
@@ -99,11 +90,10 @@ func _check_resource_collection() -> void:
 				has_cargo = true
 	
 	if not has_cargo:
-		# Check if any resource nodes are depleted (collected)
 		var depleted_count: int = 0
-		var all_nodes: Array = root.find_children("*", "", true, false)
-		for n in all_nodes:
-			if n.is_in_group("resource_nodes") and "depleted" in n and n.depleted:
+		var nodes: Array = get_tree().get_nodes_in_group("resource_nodes")
+		for n in nodes:
+			if "depleted" in n and n.depleted:
 				depleted_count += 1
 		if depleted_count > 0:
 			_validation_results["resource_collect"] = "PASS: %d resource node(s) depleted (collected)" % depleted_count
@@ -117,7 +107,6 @@ func _drive_to_resource() -> void:
 	var loco = train.locomotive if "locomotive" in train else null
 	if not loco:
 		return
-	# Nearest resource node is at (700, 200) — drive train there
 	var target := Vector2(700.0, 200.0)
 	var direction: Vector2 = (target - loco.global_position).normalized()
 	var speed := 200.0
@@ -125,23 +114,23 @@ func _drive_to_resource() -> void:
 	loco.move_and_slide()
 
 func _find_train() -> Node:
-	var main := root.get_child(0)
-	if main:
-		var train = main.get_node_or_null("Train")
+	var scene = get_tree().current_scene
+	if scene:
+		var train = scene.get_node_or_null("Train")
 		if train:
 			return train
 	# Fallback: search by group
-	var all_nodes: Array = root.find_children("*", "", true, false)
-	for node in all_nodes:
-		if node.is_in_group("train"):
-			return node
+	for node in get_tree().get_nodes_in_group("locomotive"):
+		var parent = node.get_parent()
+		if parent and parent.has_method("add_compartment"):
+			return parent
 	return null
 
 func _take_screenshot(label: String) -> void:
 	var dir := "screenshots/validation"
 	DirAccess.make_dir_recursive_absolute(dir)
 	var path := "%s/%s.png" % [dir, label]
-	var vp := root.get_viewport()
+	var vp := get_viewport()
 	var img := vp.get_texture().get_image()
 	img.save_png(path)
 	print("Screenshot: %s" % path)
@@ -150,11 +139,11 @@ func _print_results() -> void:
 	var all_pass := true
 	for key in _validation_results:
 		var val: String = _validation_results[key]
-		var status := "✓" if val.begins_with("PASS") else "✗"
+		var status := "PASS" if val.begins_with("PASS") else "FAIL"
 		if val.begins_with("FAIL"):
 			all_pass = false
-		print("  %s %s: %s" % [status, key, val])
+		print("  [%s] %s: %s" % [status, key, val])
 	if all_pass:
-		print("\n ALL CHECKS PASSED ")
+		print("\n=== ALL CHECKS PASSED ===")
 	else:
-		print("\n SOME CHECKS FAILED — see above ")
+		print("\n=== SOME CHECKS FAILED ===")

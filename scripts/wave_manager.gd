@@ -2,6 +2,9 @@ extends Node
 ## res://scripts/wave_manager.gd
 ## Wave scheduling and enemy spawn dispatch. Singleton autoloaded as WaveManager.
 
+# Force-load base class so subclass extends resolve at runtime
+const _EnemyBase = preload("res://scripts/enemy_base.gd")
+
 signal wave_started(wave_index: int)
 signal wave_ended(wave_index: int)
 signal all_clear
@@ -75,6 +78,7 @@ func _wave_enemy_count(wave: int) -> int:
 func _spawn_next_group() -> void:
 	if _enemies_to_spawn <= 0:
 		_spawn_timer.stop()
+		_spawning = false
 		return
 	var count := mini(GROUP_SIZE, _enemies_to_spawn)
 	for _i in count:
@@ -82,6 +86,7 @@ func _spawn_next_group() -> void:
 		_enemies_to_spawn -= 1
 	if _enemies_to_spawn <= 0:
 		_spawn_timer.stop()
+		_spawning = false
 
 func _spawn_one_enemy() -> void:
 	var scene := _pick_enemy_scene()

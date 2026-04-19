@@ -20,6 +20,9 @@ var _weapon: Node = null
 var body_damage_multiplier: float = 1.0
 var damage_reduction: float = 0.0  # 0 to 0.25 for armor
 
+var locomotive_cargo: String = ""
+var locomotive_cargo_amount: int = 0
+
 func _ready() -> void:
 	_respawn_timer = Timer.new()
 	_respawn_timer.one_shot = true
@@ -28,6 +31,11 @@ func _ready() -> void:
 	locomotive = get_node_or_null("Locomotive")
 	# Stagger compartment setup
 	await get_tree().process_frame
+	# Ensure train starts with at least 1 compartment
+	if compartments.is_empty():
+		var comp_scene = load("res://scenes/compartment.tscn")
+		if comp_scene:
+			add_compartment(comp_scene)
 	# Give starting weapon — gatling on locomotive
 	_attach_starting_weapon()
 
@@ -131,6 +139,11 @@ func _check_village_delivery() -> void:
 		_deliver_resources()
 
 func _deliver_resources() -> void:
+	# Unload locomotive fallback cargo
+	if not locomotive_cargo.is_empty():
+		ResourceManager.deliver_resources(locomotive_cargo, locomotive_cargo_amount)
+		locomotive_cargo = ""
+		locomotive_cargo_amount = 0
 	# Unload all cargo from compartments
 	for comp in compartments:
 		if not comp:
@@ -180,6 +193,11 @@ func try_collect_resource(type: String, amount: int) -> bool:
 	for c in compartments:
 		if c.has_method("load_cargo") and c.cargo.is_empty():
 			return c.load_cargo(type, amount)
+	# Fallback: locomotive holds cargo if no compartment has space
+	if locomotive_cargo.is_empty():
+		locomotive_cargo = type
+		locomotive_cargo_amount = amount
+		return true
 	return false
 
 func get_body_damage(current_speed: float) -> float:
@@ -207,6 +225,10 @@ func _on_destroyed() -> void:
 
 func _collect_cargo() -> Array:
 	var cargo: Array = []
+	if not locomotive_cargo.is_empty():
+		cargo.append({"type": locomotive_cargo, "amount": locomotive_cargo_amount})
+		locomotive_cargo = ""
+		locomotive_cargo_amount = 0
 	for c in compartments:
 		if c and c.has_method("get_cargo"):
 			cargo.append_array(c.get_cargo())

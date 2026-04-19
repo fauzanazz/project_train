@@ -160,8 +160,9 @@ func _draw() -> void:
 	# Spikes along top
 	for i in 5:
 		var sx := -30.0 + i * 14.0
-		draw_polygon(PackedVector2Array([Vector2(sx, -20), Vector2(sx + 3, -28), Vector2(sx + 6, -20)]), [SPIKE])
-		draw_polygon(PackedVector2Array([Vector2(sx, -20), Vector2(sx + 3, -28), Vector2(sx + 6, -20)]), [OUTLINE], PackedVector2Array(), PackedColorArray(), OUTLINE)
+		var spike_pts := PackedVector2Array([Vector2(sx, -20), Vector2(sx + 3, -28), Vector2(sx + 6, -20)])
+		draw_polygon(spike_pts, PackedColorArray([SPIKE]))
+		draw_polyline(PackedVector2Array([Vector2(sx, -20), Vector2(sx + 3, -28), Vector2(sx + 6, -20), Vector2(sx, -20)]), OUTLINE, 2.0)
 	# Spikes along bottom
 	for i in 5:
 		var sx := -30.0 + i * 14.0
@@ -189,7 +190,7 @@ func _draw_segments() -> void:
 	if position_history.size() < FOLLOW_DELAY * SEGMENT_COUNT:
 		return
 	for i in SEGMENT_COUNT:
-		var idx := min(FOLLOW_DELAY * (i + 1), position_history.size() - 1)
+		var idx: int = mini(FOLLOW_DELAY * (i + 1), position_history.size() - 1)
 		var seg_pos: Vector2 = position_history[idx] - global_position
 		# Each segment is smaller than the boss
 		var seg_w := 36.0 - i * 4.0

@@ -17,5 +17,105 @@
       "mode": "subagent",
       "prompt": "Use skill \"godot-task\" and execute the provided task block exactly. Follow the skill workflow and required completion report format."
     }
+  },
+  "provider": {
+    "zai-coding-plan": {
+      "options": {
+        "setCacheKey": true
+      },
+      "models": {
+        "glm-4.5": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.5-air": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.5-flash": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.5v": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.6": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.6v": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.7": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.7-flash": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-4.7-flashx": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-5": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-5-turbo": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-5.1": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        },
+        "glm-5v-turbo": {
+          "options": {
+            "cache_control": {
+              "type": "ephemeral"
+            }
+          }
+        }
+      }
+    }
   }
 }

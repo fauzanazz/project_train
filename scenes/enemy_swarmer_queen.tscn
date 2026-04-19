@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://scripts/enemy_swarmer_queen.gd" id="1_script"]
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_5su7r"]
 radius = 13.0
 
@@ -9,6 +11,7 @@ radius = 15.0
 [node name="EnemySwarmerQueen" type="CharacterBody2D" unique_id=1520317318]
 collision_layer = 2
 collision_mask = 17
+script = ExtResource("1_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=187078952]
 shape = SubResource("CircleShape2D_5su7r")
