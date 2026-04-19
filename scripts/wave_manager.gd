@@ -23,6 +23,11 @@ var _shambler_scene: PackedScene
 var _runner_scene: PackedScene
 var _bloater_scene: PackedScene
 var _crawler_scene: PackedScene
+var _brute_scene: PackedScene
+var _screamer_scene: PackedScene
+var _swarmer_queen_scene: PackedScene
+var _chain_scene: PackedScene
+var _boss_scene: PackedScene
 
 func _ready() -> void:
 	GameManager.game_started.connect(_on_game_started)
@@ -46,12 +51,20 @@ func _on_game_started() -> void:
 	_runner_scene = load("res://scenes/enemy_runner.tscn")
 	_bloater_scene = load("res://scenes/enemy_bloater.tscn")
 	_crawler_scene = load("res://scenes/enemy_crawler.tscn")
+	_brute_scene = load("res://scenes/enemy_brute.tscn")
+	_screamer_scene = load("res://scenes/enemy_screamer.tscn")
+	_swarmer_queen_scene = load("res://scenes/enemy_swarmer_queen.tscn")
+	_chain_scene = load("res://scenes/enemy_chain.tscn")
+	_boss_scene = load("res://scenes/boss_locomotive.tscn")
 	_grace_timer.start(grace_period * 0.5)
 
 func _begin_next_wave() -> void:
 	current_wave += 1
 	_spawning = true
 	_enemies_to_spawn = _wave_enemy_count(current_wave)
+	# Boss at wave 10
+	if current_wave == 10:
+		_spawn_boss()
 	wave_started.emit(current_wave)
 	_spawn_timer.start(SPAWN_INTERVAL)
 	_spawn_next_group()
@@ -74,11 +87,41 @@ func _spawn_one_enemy() -> void:
 	var scene := _pick_enemy_scene()
 	if not scene:
 		return
+	# Check for elite replacement
+	if current_wave >= 6 and _pick_elite_chance():
+		var elite_scene := _pick_elite_scene()
+		if elite_scene:
+			scene = elite_scene
 	var enemy = scene.instantiate()
 	enemy.global_position = _get_spawn_position()
 	var world = _find_world()
 	if world:
 		world.add_child(enemy)
+	_active_enemies += 1
+
+func _pick_elite_chance() -> bool:
+	var chance: float = DifficultyManager.get_elite_chance(current_wave)
+	return randf() < chance
+
+func _pick_elite_scene() -> PackedScene:
+	var roll := randf()
+	if roll < 0.3:
+		return _brute_scene
+	elif roll < 0.55:
+		return _screamer_scene
+	elif roll < 0.8:
+		return _swarmer_queen_scene
+	else:
+		return _chain_scene
+
+func _spawn_boss() -> void:
+	if not _boss_scene:
+		return
+	var boss = _boss_scene.instantiate()
+	boss.global_position = _get_spawn_position()
+	var world = _find_world()
+	if world:
+		world.add_child(boss)
 	_active_enemies += 1
 
 func _pick_enemy_scene() -> PackedScene:

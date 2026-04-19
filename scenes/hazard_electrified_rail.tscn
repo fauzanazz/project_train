@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/hazard_electrified_rail.gd" id="1_0h083"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kxatv"]
+size = Vector2(80, 12)
+
+[node name="ElectrifiedRail" type="Area2D" unique_id=453566069]
+collision_layer = 32
+script = ExtResource("1_0h083")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1659593873]
+shape = SubResource("RectangleShape2D_kxatv")

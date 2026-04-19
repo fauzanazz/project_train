@@ -38,7 +38,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 2. Combat, Enemies & Game Loop
 
 - **Depends on:** 1
-- **Status:** in_progress
+- **Status:** done
 - **Targets:** scenes/enemy_base.tscn, scenes/enemy_shambler.tscn, scenes/enemy_runner.tscn, scenes/enemy_bloater.tscn, scenes/enemy_crawler.tscn, scenes/projectile.tscn, scenes/weapon_gatling.tscn, scenes/weapon_flamethrower.tscn, scripts/game_manager.gd, scripts/enemy_base.gd, scripts/enemy_shambler.gd, scripts/enemy_runner.gd, scripts/enemy_bloater.gd, scripts/enemy_crawler.gd, scripts/wave_manager.gd, scripts/difficulty_manager.gd, scripts/player_manager.gd, scripts/resource_manager.gd, scripts/modifier_base.gd, scripts/weapon_gatling.gd, scripts/weapon_flamethrower.gd, scripts/level_up_ui.gd, scripts/village.gd
 - **Goal:** Full core game loop — all 4 basic zombie types with AI, wave spawning with escalating difficulty, dual economy running end-to-end, body contact combat, two starter weapons with auto-aim, level-up card system, and village tier 1–2 upgrades with turrets. Win/lose conditions active.
 - **Requirements:**
@@ -61,7 +61,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 3. Full Content, Elite Enemies & Polish
 
 - **Depends on:** 2
-- **Status:** pending
+- **Status:** done
 - **Targets:** scenes/enemy_brute.tscn, scenes/enemy_screamer.tscn, scenes/enemy_swarmer_queen.tscn, scenes/enemy_chain.tscn, scenes/boss_locomotive.tscn, scenes/hazard.tscn, scripts/enemy_brute.gd, scripts/enemy_screamer.gd, scripts/enemy_swarmer_queen.gd, scripts/enemy_chain.gd, scripts/boss_locomotive.gd, scripts/weapon_mortar.gd, scripts/weapon_taser.gd, scripts/weapon_railgun.gd, scripts/weapon_tesla.gd, scripts/weapon_devastator.gd, scripts/modifier_resource_magnet.gd, scripts/modifier_repair_drone.gd, scripts/modifier_shield_bubble.gd, scripts/village.gd, scripts/world.gd, scripts/hud.gd
 - **Goal:** Complete the content — 4 elite enemy types, first boss (Wave 10), all remaining weapons (mortar, taser, railgun, tesla, devastator), utility modifiers, village tiers 3–4 (electric fence, missile battery, generator), hazards, resource node respawn timers, and full game-feel polish (squash-and-stretch, muzzle flashes, screen shake, particle effects for all weapon types).
 - **Requirements:**
@@ -83,7 +83,7 @@ You are a **container conductor** — the driver of an armored freight train in 
 ## 4. Presentation Video
 
 - **Depends on:** 3
-- **Status:** pending
+- **Status:** in_progress
 - **Targets:** test/presentation.gd, screenshots/presentation/gameplay.mp4
 - **Goal:** Create a ~30-second cinematic video showcasing the completed game.
 - **Requirements:**

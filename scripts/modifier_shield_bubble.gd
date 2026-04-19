@@ -1,9 +1,12 @@
 extends "res://scripts/modifier_base.gd"
 ## res://scripts/modifier_shield_bubble.gd
-## Absorbs next 100 damage, 30s cooldown after depleted.
+## Absorbs next 100 damage, 30s cooldown. Visual: translucent blue circle around compartment.
 
 const SHIELD_CAPACITY: float = 100.0
 const COOLDOWN: float = 30.0
+
+signal shield_absorbed(amount: float)
+signal shield_broken
 
 var shield_hp: float = SHIELD_CAPACITY
 var _cooldown_timer: float = 0.0
@@ -31,4 +34,10 @@ func absorb_damage(amount: float) -> float:
 	if shield_hp <= 0.0:
 		active = false
 		_cooldown_timer = COOLDOWN
+		shield_broken.emit()
+	else:
+		shield_absorbed.emit(absorbed)
 	return amount - absorbed
+
+func get_shield_visual() -> Dictionary:
+	return {"active": active, "ratio": shield_hp / SHIELD_CAPACITY if active else 0.0}

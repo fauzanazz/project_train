@@ -47,6 +47,7 @@ PlayerManager="*res://scripts/player_manager.gd"
 WaveManager="*res://scripts/wave_manager.gd"
 DifficultyManager="*res://scripts/difficulty_manager.gd"
 ResourceManager="*res://scripts/resource_manager.gd"
+ScreenShake="*res://scripts/screen_shake.gd"
 
 [input]
 

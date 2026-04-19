@@ -11,6 +11,7 @@ signal resource_collected(type: String, amount: int, node: Node)
 var depleted: bool = false
 var _pulse_time: float = 0.0
 var _respawn_timer: Timer
+var _yield_multiplier: int = 1  # Outer ring nodes get 3x
 
 const TYPE_COLORS := {
 	"lumber":   Color("#22C55E"),
@@ -22,6 +23,12 @@ const OUTLINE_COLOR := Color("#111111")
 
 func _ready() -> void:
 	add_to_group("resource_nodes")
+	# Calculate yield multiplier based on distance from center
+	var dist_from_center: float = position.length()
+	if dist_from_center > 1000.0:
+		_yield_multiplier = 3
+		respawn_time = 120.0
+		yield_amount = yield_amount * _yield_multiplier
 	_respawn_timer = Timer.new()
 	_respawn_timer.one_shot = true
 	_respawn_timer.timeout.connect(_on_respawn)
@@ -70,6 +77,12 @@ func _draw() -> void:
 		# Gray, smaller, no glow
 		draw_circle(Vector2.ZERO, 14.0, DEPLETED_COLOR)
 		draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 24, OUTLINE_COLOR, 2.0)
+		# Respawn timer display
+		if _respawn_timer and _respawn_timer.time_left > 0:
+			var remaining := int(ceil(_respawn_timer.time_left))
+			var font := ThemeDB.fallback_font
+			var time_str := str(remaining) + "s"
+			draw_string(font, Vector2(-10, 5), time_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color("#AAAAAA"))
 		return
 
 	# Pulsing glow
@@ -82,6 +95,12 @@ func _draw() -> void:
 	# Filled main circle
 	draw_circle(Vector2.ZERO, 18.0, base_color)
 	draw_arc(Vector2.ZERO, 18.0, 0.0, TAU, 32, OUTLINE_COLOR, 2.5)
+
+	# Yield multiplier display for outer ring nodes
+	if _yield_multiplier > 1:
+		var mult_font := ThemeDB.fallback_font
+		var mult_str := "x%d" % _yield_multiplier
+		draw_string(mult_font, Vector2(-12, -22), mult_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color("#FFFFFF"))
 
 	# Icon inside
 	match resource_type:

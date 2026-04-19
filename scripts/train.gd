@@ -158,7 +158,23 @@ func add_compartment(compartment_scene: PackedScene) -> void:
 	var c = compartment_scene.instantiate()
 	c.index = compartments.size()
 	get_node("CompartmentContainer").add_child(c)
+	c.compartment_destroyed.connect(_on_compartment_destroyed)
 	compartments.append(c)
+
+func _on_compartment_destroyed(comp_index: int) -> void:
+	# Remove the compartment from the chain
+	var to_remove: Node = null
+	for i in compartments.size():
+		if compartments[i] and compartments[i].index == comp_index:
+			to_remove = compartments[i]
+			compartments.remove_at(i)
+			break
+	# Re-index remaining compartments
+	for i in compartments.size():
+		if compartments[i]:
+			compartments[i].index = i
+	# Screen shake on compartment loss
+	ScreenShake.shake(0.3, 8.0)
 
 func try_collect_resource(type: String, amount: int) -> bool:
 	for c in compartments:

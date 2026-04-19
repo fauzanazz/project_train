@@ -1,35 +1,26 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/enemy_runner.gd" id="1_46smm"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_vi7nf"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_n1w2x"]
 radius = 9.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_yembm"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_46smm"]
 radius = 11.0
 
-[node name="EnemyRunner" type="CharacterBody2D" unique_id=1481117969]
+[node name="EnemyRunner" type="CharacterBody2D" unique_id=1586590870]
 collision_layer = 2
 collision_mask = 17
-script = ExtResource("1_46smm")
-max_hp = 15.0
-base_speed = 140.0
-body_damage = 3.0
-wall_damage = 2.0
-xp_value = 15
-ai_type = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2091577146]
-shape = SubResource("CircleShape2D_vi7nf")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1611470292]
+shape = SubResource("CircleShape2D_n1w2x")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1656536644]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1771152033]
 path_desired_distance = 10.0
 
-[node name="HitArea" type="Area2D" parent="." unique_id=1005577247]
+[node name="HitArea" type="Area2D" parent="." unique_id=408947517]
 collision_layer = 2
 collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1773796564]
-shape = SubResource("CircleShape2D_yembm")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1392070179]
+shape = SubResource("CircleShape2D_46smm")
 
-[node name="HPBar" type="Node2D" parent="." unique_id=164798529]
+[node name="HPBar" type="Node2D" parent="." unique_id=2097331707]

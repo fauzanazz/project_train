@@ -32,3 +32,13 @@
 - Weapon attachment: train._attach_starting_weapon() creates Weapon node, sets script, adds to Locomotive/WeaponSlot, connects `projectile_spawn` signal to train handler
 - Bloater death AoE: damages train compartments and locomotive within EXPLOSION_RADIUS before queue_free()
 - Wave spawning uses staggered groups with Timer-based dispatch; 10s grace period between waves
+
+## Task 3 — Elite Content & Polish (2026-04-19)
+
+- Added elite enemy family scenes/scripts: brute, screamer, swarmer queen, chain zombie; each keeps custom draw + base AI integration.
+- Boss wave support added with `boss_locomotive` scene/script and wave-10 spawn hook in `wave_manager.gd`.
+- Hazard scenes/scripts are split by type (`hazard_toxic_puddle`, `hazard_rubble_pile`, `hazard_electrified_rail`) and spawned from `world.gd`.
+- Resource nodes now auto-detect outer-ring distance: >1000 units gives 3x yield and 120s respawn.
+- `screen_shake.gd` autoload added for heavy-impact feedback; call through singleton instead of direct camera mutation.
+- Projectile visuals and weapon effects (railgun beam, tesla arcs, devastator flash/ring) rely on short-lived draw timers rather than particle assets.
+- Compatibility note: screenshot/video capture is stable when using GPU movie mode (`--write-movie`) and can crash under strict headless dummy renderer.

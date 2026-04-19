@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/hazard_rubble_pile.gd" id="1_52iiq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mi0lp"]
+size = Vector2(44, 28)
+
+[node name="RubblePile" type="StaticBody2D" unique_id=1751569945]
+collision_layer = 32
+script = ExtResource("1_52iiq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=792947807]
+shape = SubResource("RectangleShape2D_mi0lp")

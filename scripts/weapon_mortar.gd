@@ -1,6 +1,6 @@
 extends "res://scripts/modifier_base.gd"
 ## res://scripts/weapon_mortar.gd
-## Mortar Mk1 — lobbed projectile, explosive AoE on landing.
+## Mortar Mk1 — lobbed projectile, explosive AoE on landing. Arc trajectory.
 
 const BASE_DAMAGE: float = 35.0
 const BASE_FIRE_RATE: float = 2.0
@@ -12,6 +12,7 @@ var fire_rate: float = BASE_FIRE_RATE
 var range_px: float = BASE_RANGE
 var aoe_radius: float = BASE_AOE_RADIUS
 var _cooldown: float = 0.0
+var _muzzle_flash_timer: float = 0.0
 
 func _init() -> void:
 	id = "mortar_mk1"
@@ -24,6 +25,7 @@ func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	_cooldown = 0.0
 
 func tick(dt: float) -> void:
+	_muzzle_flash_timer = max(0.0, _muzzle_flash_timer - dt)
 	_cooldown -= dt
 	if _cooldown > 0.0:
 		return
@@ -32,6 +34,7 @@ func tick(dt: float) -> void:
 		return
 	_fire_at(target)
 	_cooldown = fire_rate
+	_muzzle_flash_timer = 0.08
 
 func _find_nearest_enemy() -> Node:
 	if not _compartment:
@@ -59,4 +62,6 @@ func _fire_at(target: Node) -> void:
 		"piercing": 0,
 		"aoe_radius": aoe_radius,
 		"arc": true,
+		"speed": 300.0,
 	})
+	ScreenShake.shake(0.1, 3.0)

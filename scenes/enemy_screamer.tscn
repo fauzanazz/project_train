@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rbxnx"]
+radius = 11.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xcetw"]
+radius = 13.0
+
+[node name="EnemyScreamer" type="CharacterBody2D" unique_id=849797772]
+collision_layer = 2
+collision_mask = 17
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=927417451]
+shape = SubResource("CircleShape2D_rbxnx")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1154885706]
+path_desired_distance = 10.0
+
+[node name="HitArea" type="Area2D" parent="." unique_id=369671127]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=74898556]
+shape = SubResource("CircleShape2D_xcetw")
+
+[node name="HPBar" type="Node2D" parent="." unique_id=1288171167]

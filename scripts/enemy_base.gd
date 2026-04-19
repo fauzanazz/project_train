@@ -18,11 +18,15 @@ enum AIType { PATH_TO_VILLAGE, PATH_TO_PLAYER, HYBRID }
 var hp: float = max_hp
 var speed: float = base_speed
 var slow_multiplier: float = 1.0
+var speed_multiplier_temp: float = 1.0  # External multipliers like Screamer aura
 var _slow_timer: float = 0.0
 var _nav_agent: NavigationAgent2D
 var _hit_area: Area2D
 var _flash_timer: float = 0.0
 var _wall_contact: bool = false
+var _dying: bool = false
+var _death_timer: float = 0.0
+var _squash_stretch: Vector2 = Vector2.ONE
 
 func _ready() -> void:
 	hp = max_hp
@@ -39,7 +43,9 @@ func _on_spawn_scale() -> void:
 func _physics_process(delta: float) -> void:
 	if _slow_timer > 0.0:
 		_slow_timer -= delta
-	var effective_speed: float = speed * (slow_multiplier if _slow_timer > 0.0 else 1.0) * delta
+	if speed_multiplier_temp > 1.0:
+		speed_multiplier_temp = 1.0  # Reset each frame; screamers re-apply
+	var effective_speed: float = speed * (slow_multiplier if _slow_timer > 0.0 else 1.0) * speed_multiplier_temp * delta
 	var target: Vector2 = _get_target_position()
 	if _nav_agent:
 		_nav_agent.target_position = target
@@ -61,7 +67,12 @@ func _physics_process(delta: float) -> void:
 	_check_wall_contact(delta)
 	_flash_timer = max(0.0, _flash_timer - delta)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_process_death(delta)
+	if _dying:
+		scale = _squash_stretch
+	else:
+		scale = Vector2.ONE
 	queue_redraw()
 
 func _check_wall_contact(delta: float) -> void:
@@ -114,15 +125,28 @@ func apply_slow(factor: float, duration: float) -> void:
 	_slow_timer = duration
 
 func _die() -> void:
-	# Notify before freeing — emit signal first
+	if _dying:
+		return
+	_dying = true
+	# Squash-and-stretch animation before freeing
+	_death_timer = 0.15
+	# Notify before freeing
 	zombie_killed.emit(xp_value, global_position, _get_resource_drop())
 	PlayerManager.add_xp(xp_value)
 	WaveManager.register_enemy_death()
-	# Check for resource drop position
 	var drop = _get_resource_drop()
 	if not drop.is_empty():
 		ResourceManager.deliver_resources(drop.get("type", ""), drop.get("amount", 0))
-	queue_free()
+
+func _process_death(delta: float) -> void:
+	if not _dying:
+		return
+	_death_timer -= delta
+	# Squash-and-stretch: scale X to 1.3, Y to 0.7
+	var t := 1.0 - max(0.0, _death_timer) / 0.15
+	_squash_stretch = Vector2(1.0 + 0.3 * t, 1.0 - 0.3 * t)
+	if _death_timer <= 0.0:
+		queue_free()
 
 func _get_resource_drop() -> Dictionary:
 	return {}

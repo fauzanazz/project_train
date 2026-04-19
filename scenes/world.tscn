@@ -8,19 +8,19 @@ vertices = PackedVector2Array(1590, 1590, -1590, 1590, -1590, -1590, 1590, -1590
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(-1600, -1600, 1600, -1600, 1600, 1600, -1600, 1600), PackedVector2Array(-150, -150, 150, -150, 150, 150, -150, 150)])
 
-[node name="World" type="Node2D" unique_id=2058677076]
+[node name="World" type="Node2D" unique_id=1727190083]
 script = ExtResource("1_rwgxs")
 
-[node name="Ground" type="Node2D" parent="." unique_id=1028202189]
+[node name="Ground" type="Node2D" parent="." unique_id=1182877285]
 
-[node name="Village" type="Node2D" parent="." unique_id=1084596874]
+[node name="Village" type="Node2D" parent="." unique_id=2058736696]
 script = ExtResource("2_4wyf3")
 
-[node name="ResourceNodes" type="Node2D" parent="." unique_id=1057505145]
+[node name="ResourceNodes" type="Node2D" parent="." unique_id=1971055448]
 
-[node name="HazardNodes" type="Node2D" parent="." unique_id=1933330779]
+[node name="HazardNodes" type="Node2D" parent="." unique_id=476725411]
 
-[node name="SpawnCorridors" type="Node2D" parent="." unique_id=1063746549]
+[node name="SpawnCorridors" type="Node2D" parent="." unique_id=331992632]
 
-[node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=620116754]
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=404287536]
 navigation_polygon = SubResource("NavigationPolygon_k0juu")

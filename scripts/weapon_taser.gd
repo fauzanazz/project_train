@@ -12,6 +12,7 @@ var damage: float = BASE_DAMAGE
 var fire_rate: float = BASE_FIRE_RATE
 var range_px: float = BASE_RANGE
 var _cooldown: float = 0.0
+var _muzzle_flash_timer: float = 0.0
 
 func _init() -> void:
 	id = "taser_mk1"
@@ -24,6 +25,7 @@ func on_attach(compartment: Node, slot_index: int = 0) -> void:
 	_cooldown = 0.0
 
 func tick(dt: float) -> void:
+	_muzzle_flash_timer = max(0.0, _muzzle_flash_timer - dt)
 	_cooldown -= dt
 	if _cooldown > 0.0:
 		return
@@ -39,8 +41,10 @@ func tick(dt: float) -> void:
 		"aoe_radius": 0.0,
 		"slow_factor": SLOW_FACTOR,
 		"slow_duration": SLOW_DURATION,
+		"speed": 500.0,
 	})
 	_cooldown = fire_rate
+	_muzzle_flash_timer = 0.06
 
 func _find_nearest_enemy() -> Node:
 	if not _compartment:

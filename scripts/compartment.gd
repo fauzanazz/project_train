@@ -16,6 +16,7 @@ var cargo: String = ""
 var cargo_amount: int = 0
 var modifier: Node = null
 var _target_source: Node = null
+var _flash_timer: float = 0.0
 
 func _ready() -> void:
 	pass
@@ -59,10 +60,21 @@ func _find_locomotive() -> Node:
 	return locos[0] if locos.size() > 0 else null
 
 func take_damage(amount: float) -> void:
+	# Check for shield bubble on modifier
+	if modifier and modifier.has_method("absorb_damage"):
+		var remaining: float = modifier.absorb_damage(amount)
+		amount = remaining
 	hp -= amount
+	_flash_timer = 0.1
 	if hp <= 0.0:
-		compartment_destroyed.emit(index)
-		queue_free()
+		_die()
+
+func _die() -> void:
+	compartment_destroyed.emit(index)
+	# Brief flash animation before removal
+	var flash_tween := create_tween()
+	flash_tween.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.15)
+	flash_tween.tween_callback(queue_free)
 
 func get_cargo() -> Array:
 	if cargo.is_empty():
@@ -89,6 +101,7 @@ func attach_modifier(mod: Node) -> void:
 		mod.on_attach(self)
 
 func _process(_delta: float) -> void:
+	_flash_timer = max(0.0, _flash_timer - _delta)
 	queue_redraw()
 
 func _draw() -> void:
@@ -105,6 +118,9 @@ func _draw() -> void:
 	var body_color := BODY_COLOR
 	if hp < max_hp * 0.5:
 		body_color = BODY_COLOR.lerp(Color("#AA4444"), 0.3)
+	# Flash on damage
+	if _flash_timer > 0.0:
+		body_color = body_color.lerp(Color.WHITE, _flash_timer * 5.0)
 	draw_rect(Rect2(-25, -14, 50, 28), body_color)
 	draw_rect(Rect2(-25, -14, 50, 28), OUTLINE, false, 2.0)
 	draw_rect(Rect2(-23, -5, 8, 10), ACCENT)
@@ -126,3 +142,11 @@ func _draw() -> void:
 		var ratio := hp / max_hp
 		draw_rect(Rect2(-20, -18, bar_w, 3), Color("#333333"))
 		draw_rect(Rect2(-20, -18, bar_w * ratio, 3), Color("#22CC22") if ratio > 0.5 else Color("#FF4444"))
+	# Shield bubble visual
+	if modifier and modifier.has_method("get_shield_visual"):
+		var shield_info: Dictionary = modifier.get_shield_visual()
+		if shield_info.get("active", false):
+			var ratio: float = shield_info.get("ratio", 0.0)
+			var alpha := 0.3 + 0.2 * sin(Time.get_ticks_msec() / 300.0)
+			draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 24, Color(0.3, 0.6, 1.0, alpha), 2.0)
+			draw_arc(Vector2.ZERO, 20.0, 0.0, TAU * ratio, 24, Color(0.3, 0.6, 1.0, 0.6), 3.0)
