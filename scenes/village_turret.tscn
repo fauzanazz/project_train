@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" path="res://scripts/village_turret.gd" id="1_8kq3a"]
 
-[node name="VillageTurret" type="Node2D" unique_id=539151591]
+[node name="VillageTurret" type="Node2D" unique_id=660843707]
 script = ExtResource("1_8kq3a")

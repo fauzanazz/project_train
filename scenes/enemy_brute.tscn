@@ -1,29 +1,34 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/enemy_brute.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/enemy_brute.gd" id="1_fu5vb"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_q3xox"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_70qhh"]
 radius = 14.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_fu5vb"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_sffnb"]
 radius = 16.0
 
-[node name="EnemyBrute" type="CharacterBody2D" unique_id=223141095]
+[node name="EnemyBrute" type="CharacterBody2D" unique_id=1965938114]
 collision_layer = 2
 collision_mask = 17
-script = ExtResource("1_script")
+script = ExtResource("1_fu5vb")
+max_hp = 300.0
+base_speed = 50.0
+body_damage = 8.0
+wall_damage = 5.0
+xp_value = 50
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1144486503]
-shape = SubResource("CircleShape2D_q3xox")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1649396576]
+shape = SubResource("CircleShape2D_70qhh")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=405526728]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=734407679]
 path_desired_distance = 10.0
 
-[node name="HitArea" type="Area2D" parent="." unique_id=963331396]
+[node name="HitArea" type="Area2D" parent="." unique_id=991066528]
 collision_layer = 2
 collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1925719163]
-shape = SubResource("CircleShape2D_fu5vb")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=912194061]
+shape = SubResource("CircleShape2D_sffnb")
 
-[node name="HPBar" type="Node2D" parent="." unique_id=1312903689]
+[node name="HPBar" type="Node2D" parent="." unique_id=2088281215]

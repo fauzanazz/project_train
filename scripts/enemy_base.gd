@@ -24,6 +24,8 @@ var _nav_agent: NavigationAgent2D
 var _hit_area: Area2D
 var _flash_timer: float = 0.0
 var _wall_contact: bool = false
+var _knockback_velocity: Vector2 = Vector2.ZERO
+var _knockback_timer: float = 0.0
 var _dying: bool = false
 var _death_timer: float = 0.0
 var _squash_stretch: Vector2 = Vector2.ONE
@@ -45,27 +47,34 @@ func _physics_process(delta: float) -> void:
 		_slow_timer -= delta
 	if speed_multiplier_temp > 1.0:
 		speed_multiplier_temp = 1.0  # Reset each frame; screamers re-apply
-	var effective_speed: float = speed * (slow_multiplier if _slow_timer > 0.0 else 1.0) * speed_multiplier_temp * delta
-	var target: Vector2 = _get_target_position()
-	if _nav_agent:
-		_nav_agent.target_position = target
-		var next_pos: Vector2 = _nav_agent.get_next_path_position()
-		var dir: Vector2 = (next_pos - global_position)
-		if dir.length_squared() > 4.0:
-			velocity = dir.normalized() * effective_speed / delta
-			rotation = dir.angle()
-		else:
-			velocity = Vector2.ZERO
+	# Apply knockback if active
+	if _knockback_timer > 0.0:
+		_knockback_timer -= delta
+		velocity = _knockback_velocity
 	else:
-		var dir: Vector2 = (target - global_position)
-		if dir.length_squared() > 100.0:
-			velocity = dir.normalized() * effective_speed / delta
-			rotation = dir.angle()
+		_knockback_velocity = Vector2.ZERO
+		var effective_speed: float = speed * (slow_multiplier if _slow_timer > 0.0 else 1.0) * speed_multiplier_temp * delta
+		var target: Vector2 = _get_target_position()
+		if _nav_agent:
+			_nav_agent.target_position = target
+			var next_pos: Vector2 = _nav_agent.get_next_path_position()
+			var dir: Vector2 = (next_pos - global_position)
+			if dir.length_squared() > 4.0:
+				velocity = dir.normalized() * effective_speed / delta
+				rotation = dir.angle()
+			else:
+				velocity = Vector2.ZERO
 		else:
-			velocity = Vector2.ZERO
-	move_and_slide()
+			var dir: Vector2 = (target - global_position)
+			if dir.length_squared() > 100.0:
+				velocity = dir.normalized() * effective_speed / delta
+				rotation = dir.angle()
+			else:
+				velocity = Vector2.ZERO
+	# Check wall contact BEFORE move_and_slide so we can zero velocity
 	_check_wall_contact(delta)
-	_flash_timer = max(0.0, _flash_timer - delta)
+	move_and_slide()
+	_flash_timer = maxf(0.0, _flash_timer - delta)
 
 func _process(delta: float) -> void:
 	_process_death(delta)
@@ -79,14 +88,23 @@ func _check_wall_contact(delta: float) -> void:
 	var village = get_tree().get_first_node_in_group("village") if get_tree() else null
 	if not village:
 		return
-	var dist := global_position.distance_to(village.global_position)
-	if dist < 170.0:  # Within wall radius (village is 300x300, half is 150 + margin)
-		_wall_contact = true
-		village.take_damage(wall_damage * delta)
-		# Slow down at wall
-		velocity *= 0.5
+	var dist: float = global_position.distance_to(village.global_position)
+	var wall_radius := 170.0
+
+	if village.are_walls_intact():
+		if dist < wall_radius:
+			_wall_contact = true
+			velocity = Vector2.ZERO
+			village.take_damage_from(self, wall_damage * delta)
+		else:
+			_wall_contact = false
 	else:
-		_wall_contact = false
+		if dist < 50.0:
+			_wall_contact = true
+			village.take_damage_from(self, wall_damage * delta * 2.0)
+			velocity *= 0.3
+		else:
+			_wall_contact = false
 
 func _get_target_position() -> Vector2:
 	var player_pos: Vector2 = _find_player_position()
@@ -123,6 +141,10 @@ func _apply_resistances(amount: float, _type: String) -> float:
 func apply_slow(factor: float, duration: float) -> void:
 	slow_multiplier = factor
 	_slow_timer = duration
+
+func apply_knockback(direction: Vector2, strength: float) -> void:
+	_knockback_velocity = direction * strength
+	_knockback_timer = 0.2
 
 func _die() -> void:
 	if _dying:

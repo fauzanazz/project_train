@@ -102,7 +102,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var alpha := max(0, _time / 0.3)
+	var alpha := maxf(0, _time / 0.3)
 	var arr := PackedVector2Array()
 	for p in _points:
 		arr.append(p)

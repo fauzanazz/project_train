@@ -2,17 +2,17 @@
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_ahhtf"]
 
-[node name="HUD" type="CanvasLayer" unique_id=810211971]
+[node name="HUD" type="CanvasLayer" unique_id=936573372]
 layer = 10
 script = ExtResource("1_ahhtf")
 
-[node name="Control" type="Control" parent="." unique_id=1563758656]
+[node name="Control" type="Control" parent="." unique_id=438141320]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="TopLeft" type="VBoxContainer" parent="Control" unique_id=414652875]
+[node name="TopLeft" type="VBoxContainer" parent="Control" unique_id=420674927]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 0
 offset_left = 12.0
@@ -20,21 +20,21 @@ offset_top = 12.0
 offset_right = 12.0
 offset_bottom = 12.0
 
-[node name="VillageHPBar" type="ProgressBar" parent="Control/TopLeft" unique_id=23265361]
+[node name="VillageHPBar" type="ProgressBar" parent="Control/TopLeft" unique_id=1011515984]
 custom_minimum_size = Vector2(220, 18)
 layout_mode = 2
 max_value = 500.0
 value = 500.0
 
-[node name="XPBar" type="ProgressBar" parent="Control/TopLeft" unique_id=1336888371]
+[node name="XPBar" type="ProgressBar" parent="Control/TopLeft" unique_id=673834482]
 custom_minimum_size = Vector2(220, 14)
 layout_mode = 2
 
-[node name="LevelLabel" type="Label" parent="Control/TopLeft" unique_id=1503770592]
+[node name="LevelLabel" type="Label" parent="Control/TopLeft" unique_id=1426426231]
 layout_mode = 2
 text = "Lv 1"
 
-[node name="TopCenter" type="VBoxContainer" parent="Control" unique_id=1558879914]
+[node name="TopCenter" type="VBoxContainer" parent="Control" unique_id=1630897791]
 layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5
@@ -43,16 +43,16 @@ offset_top = 12.0
 offset_right = -60.0
 offset_bottom = 12.0
 
-[node name="WaveLabel" type="Label" parent="Control/TopCenter" unique_id=1048439952]
+[node name="WaveLabel" type="Label" parent="Control/TopCenter" unique_id=91905301]
 layout_mode = 2
 text = "Wave 0"
 horizontal_alignment = 1
 
-[node name="WaveTimerLabel" type="Label" parent="Control/TopCenter" unique_id=641431011]
+[node name="WaveTimerLabel" type="Label" parent="Control/TopCenter" unique_id=409417351]
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="CargoDisplayParent" type="HBoxContainer" parent="Control" unique_id=1371509238]
+[node name="CargoDisplayParent" type="HBoxContainer" parent="Control" unique_id=478020333]
 layout_mode = 0
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -61,10 +61,10 @@ offset_top = -50.0
 offset_right = 12.0
 offset_bottom = -50.0
 
-[node name="CargoDisplay" type="HBoxContainer" parent="Control/CargoDisplayParent" unique_id=661762067]
+[node name="CargoDisplay" type="HBoxContainer" parent="Control/CargoDisplayParent" unique_id=983678000]
 layout_mode = 2
 
-[node name="MiniMap" type="SubViewportContainer" parent="Control" unique_id=979935745]
+[node name="MiniMap" type="SubViewportContainer" parent="Control" unique_id=1891701847]
 custom_minimum_size = Vector2(180, 180)
 layout_mode = 0
 anchor_left = 1.0
@@ -76,7 +76,7 @@ offset_top = -192.0
 offset_right = -192.0
 offset_bottom = -192.0
 
-[node name="LevelUpPanel" type="Panel" parent="Control" unique_id=1594979208]
+[node name="LevelUpPanel" type="Panel" parent="Control" unique_id=1016120796]
 visible = false
 custom_minimum_size = Vector2(320, 300)
 layout_mode = 0

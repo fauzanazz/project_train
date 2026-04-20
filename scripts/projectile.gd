@@ -17,6 +17,7 @@ var slow_duration: float = 0.0
 var is_arc: bool = false
 var arc_height: float = 0.0
 
+var is_enemy: bool = false
 var _distance_traveled: float = 0.0
 var _lifetime: float = 0.0
 var _hit_count: int = 0
@@ -43,6 +44,7 @@ func setup(origin: Vector2, dir: Vector2, data: Dictionary) -> void:
 	slow_factor = data.get("slow_factor", 0.0)
 	slow_duration = data.get("slow_duration", 0.0)
 	is_arc = data.get("arc", false)
+	is_enemy = data.get("is_enemy", false)
 	if is_arc:
 		_arc_duration = max_range / speed
 		_arc_time = 0.0
@@ -50,7 +52,7 @@ func setup(origin: Vector2, dir: Vector2, data: Dictionary) -> void:
 
 func _ready() -> void:
 	collision_layer = 4  # projectiles
-	collision_mask = 2    # enemies
+	collision_mask = 2 if not is_enemy else 1  # enemies or player
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
 
@@ -82,10 +84,18 @@ func _on_body_entered(body: Node) -> void:
 	_try_damage(body)
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("enemies"):
-		var parent = area.get_parent()
-		if parent and parent.has_method("take_damage"):
-			_try_damage(parent)
+	if is_enemy:
+		# Enemy projectile hits player structures (compartments, etc.)
+		if area.collision_layer & 1:  # player layer
+			var parent = area.get_parent()
+			if parent and parent.has_method("take_damage"):
+				_try_damage(parent)
+	else:
+		# Player projectile hits enemies
+		if area.is_in_group("enemies"):
+			var parent = area.get_parent()
+			if parent and parent.has_method("take_damage"):
+				_try_damage(parent)
 
 func _try_damage(target: Node) -> void:
 	if not target.has_method("take_damage"):
@@ -130,7 +140,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var ratio := max(0, _time / 0.4)
+	var ratio := maxf(0, _time / 0.4)
 	var r := _radius * (1.0 - ratio * 0.5)
 	draw_circle(Vector2.ZERO, r, Color(1, 0.5, 0.1, ratio * 0.5))
 	draw_circle(Vector2.ZERO, r * 0.5, Color(1, 1.0, 0.3, ratio * 0.7))
@@ -159,7 +169,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var alpha := max(0, _time / 0.15)
+	var alpha := maxf(0, _time / 0.15)
 	for i in 3:
 		var angle := i * TAU / 3.0 + randf() * 0.5
 		var len := 4.0 + randf() * 4.0

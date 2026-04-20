@@ -8,22 +8,22 @@ radius = 12.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_j1ss0"]
 radius = 14.0
 
-[node name="EnemyBase" type="CharacterBody2D" unique_id=1980935855]
+[node name="EnemyBase" type="CharacterBody2D" unique_id=240861169]
 collision_layer = 2
 collision_mask = 17
 script = ExtResource("1_fr7lv")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096856911]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=534420791]
 shape = SubResource("CircleShape2D_sw0xa")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1664614401]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1910549732]
 path_desired_distance = 10.0
 
-[node name="HitArea" type="Area2D" parent="." unique_id=752739522]
+[node name="HitArea" type="Area2D" parent="." unique_id=660631608]
 collision_layer = 2
 collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=26590967]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1181283848]
 shape = SubResource("CircleShape2D_j1ss0")
 
-[node name="HPBar" type="Node2D" parent="." unique_id=1317679319]
+[node name="HPBar" type="Node2D" parent="." unique_id=81092733]

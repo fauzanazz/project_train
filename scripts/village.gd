@@ -21,6 +21,9 @@ const FORTIFY_COLOR := Color("#FFD700")
 
 var hp: float = BASE_HP
 var max_hp: float = BASE_HP
+var base_hp: float = 200.0
+var base_max_hp: float = 200.0
+var walls_destroyed: bool = false
 var tier: int = 0
 var turrets: Array = []
 var _damage_flash: float = 0.0
@@ -36,8 +39,8 @@ func _ready() -> void:
 	ResourceManager.village_upgraded.connect(_on_village_upgraded)
 
 func _process(delta: float) -> void:
-	_damage_flash = max(0.0, _damage_flash - delta * 3.0)
-	_upgrade_flash = max(0.0, _upgrade_flash - delta * 2.0)
+	_damage_flash = maxf(0.0, _damage_flash - delta * 3.0)
+	_upgrade_flash = maxf(0.0, _upgrade_flash - delta * 2.0)
 	_fence_pulse += delta
 	# Tier 3: Electric fence aura damages nearby enemies
 	if tier >= 3:
@@ -51,15 +54,21 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func take_damage(amount: float) -> void:
-	# Tier 4: basic zombies can't damage walls (reduced damage for non-elites)
-	# This is handled externally by checking if enemy is basic
+	if walls_destroyed:
+		base_hp -= amount
+		_damage_flash = 1.0
+		village_damaged.emit(amount, base_hp)
+		if base_hp <= 0.0:
+			base_hp = 0.0
+			village_destroyed.emit()
+			GameManager._on_village_destroyed()
+		return
 	hp -= amount
 	_damage_flash = 1.0
 	village_damaged.emit(amount, hp)
 	if hp <= 0.0:
 		hp = 0.0
-		village_destroyed.emit()
-		GameManager._on_village_destroyed()
+		walls_destroyed = true
 
 func take_damage_from(enemy: Node, amount: float) -> void:
 	# Tier 4: basic zombies deal 0 damage to walls
@@ -68,8 +77,15 @@ func take_damage_from(enemy: Node, amount: float) -> void:
 	take_damage(amount)
 
 func repair(amount: float) -> void:
-	hp = min(hp + amount, max_hp)
-	village_damaged.emit(0.0, hp)
+	if walls_destroyed:
+		base_hp = minf(base_hp + amount, base_max_hp)
+		village_damaged.emit(0.0, base_hp)
+	else:
+		hp = minf(hp + amount, max_hp)
+		village_damaged.emit(0.0, hp)
+
+func are_walls_intact() -> bool:
+	return not walls_destroyed
 
 func _fence_damage_enemies(delta: float) -> void:
 	# Electric fence: damages all enemies within 50px of walls at 15 HP/s
@@ -130,8 +146,8 @@ func _spawn_missile(target: Node) -> void:
 
 func _on_village_upgraded(new_tier: int) -> void:
 	tier = new_tier
-	max_hp = BASE_HP * TIER_HP_BONUS[min(new_tier, TIER_HP_BONUS.size() - 1)]
-	hp = min(hp, max_hp)
+	max_hp = BASE_HP * TIER_HP_BONUS[minf(new_tier, TIER_HP_BONUS.size() - 1)]
+	hp = minf(hp, max_hp)
 	_upgrade_flash = 1.0
 	if new_tier == 1:
 		_spawn_turret("arrow", Vector2(-120, -160))
@@ -166,6 +182,8 @@ func _draw() -> void:
 	var half := WALL_SIZE * 0.5
 	var t := WALL_THICK
 	var wall_color := WALL_COLOR
+	if walls_destroyed:
+		wall_color = Color(WALL_COLOR.r, WALL_COLOR.g, WALL_COLOR.b, 0.3)
 	if _damage_flash > 0.0:
 		wall_color = WALL_COLOR.lerp(Color("#FF4444"), _damage_flash * 0.5)
 	# Tier 4: fortress glow
@@ -198,7 +216,9 @@ func _draw() -> void:
 	var bar_height := 14.0
 	var bar_x := -bar_width * 0.5
 	var bar_y := -half - 30.0
-	var hp_ratio := hp / max_hp if max_hp > 0 else 0.0
+	var display_hp := base_hp if walls_destroyed else hp
+	var display_max := base_max_hp if walls_destroyed else max_hp
+	var hp_ratio := display_hp / display_max if display_max > 0 else 0.0
 	draw_rect(Rect2(bar_x, bar_y, bar_width, bar_height), HP_BAR_BG)
 	var fill_color := HP_BAR_FG if hp_ratio > 0.3 else HP_BAR_LOW
 	draw_rect(Rect2(bar_x, bar_y, bar_width * hp_ratio, bar_height), fill_color)
@@ -236,6 +256,8 @@ func _draw_missile_battery() -> void:
 	draw_circle(Vector2(pos.x, pos.y - 16), 4.0, Color("#FF4444"))
 
 func _draw_stone_detail(half: float, t: float, wall_color: Color) -> void:
+	if walls_destroyed:
+		return
 	var stone_color := Color(wall_color.r * 0.8, wall_color.g * 0.8, wall_color.b * 0.8)
 	var block_size := 16.0
 	var nx := -half + 8.0

@@ -30,6 +30,7 @@ var _brute_scene: PackedScene
 var _screamer_scene: PackedScene
 var _swarmer_queen_scene: PackedScene
 var _chain_scene: PackedScene
+var _shooter_scene: PackedScene
 var _boss_scene: PackedScene
 
 func _ready() -> void:
@@ -58,6 +59,7 @@ func _on_game_started() -> void:
 	_screamer_scene = load("res://scenes/enemy_screamer.tscn")
 	_swarmer_queen_scene = load("res://scenes/enemy_swarmer_queen.tscn")
 	_chain_scene = load("res://scenes/enemy_chain.tscn")
+	_shooter_scene = load("res://scenes/enemy_shooter.tscn")
 	_boss_scene = load("res://scenes/boss_locomotive.tscn")
 	_grace_timer.start(grace_period * 0.5)
 
@@ -134,33 +136,43 @@ func _pick_enemy_scene() -> PackedScene:
 		return _shambler_scene
 	var roll := randf()
 	if current_wave <= 6:
-		if roll < 0.5:
+		if roll < 0.4:
 			return _shambler_scene
-		elif roll < 0.8:
+		elif roll < 0.65:
 			return _runner_scene
-		else:
+		elif roll < 0.8:
 			return _crawler_scene
-	if roll < 0.3:
+		else:
+			return _shooter_scene
+	# Wave 7+
+	if roll < 0.25:
 		return _shambler_scene
-	elif roll < 0.55:
+	elif roll < 0.45:
 		return _runner_scene
-	elif roll < 0.75:
+	elif roll < 0.60:
 		return _bloater_scene
-	else:
+	elif roll < 0.80:
 		return _crawler_scene
+	else:
+		return _shooter_scene
 
 func _get_spawn_position() -> Vector2:
-	var corridors := [
-		Vector2(-1600, 0), Vector2(1600, 0),
-		Vector2(0, -1600), Vector2(0, 1600),
-	]
-	# Try to use World's spawn corridors if available
-	var world = _find_world()
-	if world and world.has_method("get_spawn_corridor"):
-		var idx := randi() % 4
-		return world.get_spawn_corridor(idx) + Vector2(randf_range(-80, 80), randf_range(-80, 80))
-	var base: Vector2 = corridors[randi() % corridors.size()]
-	return base + Vector2(randf_range(-80, 80), randf_range(-80, 80))
+	var half := 1600.0
+	# Pick a random side (0=top, 1=bottom, 2=left, 3=right)
+	var side := randi() % 4
+	var pos := Vector2.ZERO
+	match side:
+		0:  # Top edge
+			pos = Vector2(randf_range(-half, half), -half)
+		1:  # Bottom edge
+			pos = Vector2(randf_range(-half, half), half)
+		2:  # Left edge
+			pos = Vector2(-half, randf_range(-half, half))
+		3:  # Right edge
+			pos = Vector2(half, randf_range(-half, half))
+	# Small random jitter so enemies don't stack exactly on the edge
+	pos += Vector2(randf_range(-20, 20), randf_range(-20, 20))
+	return pos
 
 func _find_world() -> Node:
 	if get_tree() and get_tree().current_scene:

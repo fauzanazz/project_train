@@ -121,7 +121,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var ratio := max(0, _time / 1.0)
+	var ratio := maxf(0, _time / 1.0)
 	var r := 120.0 * (1.0 - ratio)
 	draw_circle(Vector2.ZERO, r, Color(1.0, 0.3, 0.1, ratio * 0.5))
 	draw_circle(Vector2.ZERO, r * 0.5, Color(1.0, 0.8, 0.2, ratio * 0.7))

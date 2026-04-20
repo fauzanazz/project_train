@@ -7,6 +7,7 @@ func _initialize() -> void:
 	_build_enemy("EnemyRunner", "res://scripts/enemy_runner.gd", 15.0, 140.0, 3.0, 2.0, 15, 1, "res://scenes/enemy_runner.tscn", 9.0)
 	_build_enemy("EnemyBloater", "res://scripts/enemy_bloater.gd", 80.0, 40.0, 8.0, 5.0, 20, 0, "res://scenes/enemy_bloater.tscn", 16.0)
 	_build_enemy("EnemyCrawler", "res://scripts/enemy_crawler.gd", 20.0, 90.0, 4.0, 2.0, 12, 2, "res://scenes/enemy_crawler.tscn", 10.0)
+	_build_enemy("EnemyShooter", "res://scripts/enemy_shooter.gd", 40.0, 45.0, 3.0, 2.0, 15, 2, "res://scenes/enemy_shooter.tscn", 12.0)
 	# Elite enemies
 	_build_elite("EnemyBrute", "res://scripts/enemy_brute.gd", 300.0, 50.0, 8.0, 5.0, 50, 0, "res://scenes/enemy_brute.tscn", 14.0)
 	_build_elite("EnemyScreamer", "res://scripts/enemy_screamer.gd", 60.0, 120.0, 3.0, 2.0, 30, 1, "res://scenes/enemy_screamer.tscn", 11.0)

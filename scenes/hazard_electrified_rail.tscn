@@ -5,9 +5,9 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kxatv"]
 size = Vector2(80, 12)
 
-[node name="ElectrifiedRail" type="Area2D" unique_id=453566069]
+[node name="ElectrifiedRail" type="Area2D" unique_id=577804684]
 collision_layer = 32
 script = ExtResource("1_0h083")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1659593873]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=589297910]
 shape = SubResource("RectangleShape2D_kxatv")

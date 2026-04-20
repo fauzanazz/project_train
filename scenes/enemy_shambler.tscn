@@ -1,29 +1,29 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/enemy_shambler.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/enemy_shambler.gd" id="1_y5hqy"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_pbjst"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_wd45h"]
 radius = 12.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_y5hqy"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_v6h3f"]
 radius = 14.0
 
-[node name="EnemyShambler" type="CharacterBody2D" unique_id=596994176]
+[node name="EnemyShambler" type="CharacterBody2D" unique_id=1766815767]
 collision_layer = 2
 collision_mask = 17
-script = ExtResource("1_script")
+script = ExtResource("1_y5hqy")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1443195792]
-shape = SubResource("CircleShape2D_pbjst")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1133416053]
+shape = SubResource("CircleShape2D_wd45h")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1350464079]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1401185942]
 path_desired_distance = 10.0
 
-[node name="HitArea" type="Area2D" parent="." unique_id=512098129]
+[node name="HitArea" type="Area2D" parent="." unique_id=1439216581]
 collision_layer = 2
 collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=2061638719]
-shape = SubResource("CircleShape2D_y5hqy")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=359843335]
+shape = SubResource("CircleShape2D_v6h3f")
 
-[node name="HPBar" type="Node2D" parent="." unique_id=387235482]
+[node name="HPBar" type="Node2D" parent="." unique_id=1187301584]

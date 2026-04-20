@@ -64,7 +64,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var alpha := max(0, _time / 0.06)
+	var alpha := maxf(0, _time / 0.06)
 	draw_rect(Rect2(-2000, -2000, 4000, 4000), Color(1, 1, 1, alpha))"
 	var script = GDScript.new()
 	script.source_code = src
@@ -83,9 +83,9 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var ratio := 1.0 - max(0, _time / 0.6)
+	var ratio := 1.0 - maxf(0, _time / 0.6)
 	var r := 800.0 * ratio
-	var alpha := max(0, _time / 0.6)
+	var alpha := maxf(0, _time / 0.6)
 	draw_arc(_center, r, 0.0, TAU, 64, Color(1, 0.5, 0.1, alpha), 8.0)
 	draw_arc(_center, r * 0.7, 0.0, TAU, 48, Color(1, 1.0, 0.3, alpha * 0.5), 4.0)
 	draw_circle(_center, r * 0.3, Color(1, 0.8, 0.2, alpha * 0.3))

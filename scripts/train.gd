@@ -19,6 +19,7 @@ var _respawn_timer: Timer
 var _weapon: Node = null
 var body_damage_multiplier: float = 1.0
 var damage_reduction: float = 0.0  # 0 to 0.25 for armor
+var _bounce_slow_pending: bool = false
 
 var locomotive_cargo: String = ""
 var locomotive_cargo_amount: int = 0
@@ -76,13 +77,20 @@ func _deal_body_damage(delta: float) -> void:
 	if speed_ratio < 0.3:
 		return  # Not moving fast enough for body damage
 	var damage_per_sec := BASE_BODY_DAMAGE * body_damage_multiplier * speed_ratio
+	var hit_damage: float = damage_per_sec * delta
 	# Check locomotive body damage area
 	var bda = locomotive.get_node_or_null("BodyDamageArea")
 	if bda and bda is Area2D:
 		for body in bda.get_overlapping_bodies():
 			if body.is_in_group("enemies") and body.has_method("take_damage"):
-				body.take_damage(damage_per_sec * delta, "kinetic")
+				var enemy_hp_before: float = body.hp if "hp" in body else 999.0
+				body.take_damage(hit_damage, "kinetic")
 				_spawn_sparks_at(body.global_position)
+				# Check if enemy survived
+				var enemy_hp_after: float = body.hp if "hp" in body else 0.0
+				if enemy_hp_after > 0.0:
+					# Enemy survived — bounce both apart
+					_apply_bounce(locomotive, body)
 	# Check compartment body damage areas
 	for comp in compartments:
 		if not comp:
@@ -91,8 +99,28 @@ func _deal_body_damage(delta: float) -> void:
 		if comp_bda and comp_bda is Area2D:
 			for body in comp_bda.get_overlapping_bodies():
 				if body.is_in_group("enemies") and body.has_method("take_damage"):
-					body.take_damage(damage_per_sec * delta * 0.7, "kinetic")
+					var comp_damage: float = hit_damage * 0.7
+					var enemy_hp_before: float = body.hp if "hp" in body else 999.0
+					body.take_damage(comp_damage, "kinetic")
 					_spawn_sparks_at(body.global_position)
+					var enemy_hp_after: float = body.hp if "hp" in body else 0.0
+					if enemy_hp_after > 0.0:
+						_apply_bounce(comp, body)
+
+func _apply_bounce(train_segment: Node2D, enemy: Node2D) -> void:
+	var push_dir: Vector2 = train_segment.global_position.direction_to(enemy.global_position)
+	var bounce_strength := 150.0
+	if enemy.has_method("apply_knockback"):
+		enemy.apply_knockback(push_dir, bounce_strength)
+	# Only apply speed slow if not already pending (prevents accumulation)
+	if locomotive and not _bounce_slow_pending:
+		_bounce_slow_pending = true
+		locomotive.speed_multiplier = maxf(0.3, locomotive.speed_multiplier - 0.2)
+		get_tree().create_timer(0.3).timeout.connect(func():
+			if is_instance_valid(locomotive):
+				locomotive.speed_multiplier = minf(locomotive.speed_multiplier + 0.2, 2.0)
+			_bounce_slow_pending = false
+		)
 
 func _spawn_sparks_at(pos: Vector2) -> void:
 	if not get_tree() or not get_tree().current_scene:
@@ -115,7 +143,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var alpha := max(0, _time / 0.2)
+	var alpha := maxf(0, _time / 0.2)
 	for i in 3:
 		var angle := i * TAU / 3.0 + randf() * 0.5
 		var len := 4.0 + randf() * 4.0

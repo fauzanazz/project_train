@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_shooter.gd" id="1_afvl6"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_amqcw"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_p4l84"]
+radius = 14.0
+
+[node name="EnemyShooter" type="CharacterBody2D" unique_id=784154306]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_afvl6")
+max_hp = 40.0
+base_speed = 45.0
+body_damage = 3.0
+wall_damage = 2.0
+xp_value = 15
+ai_type = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=74752445]
+shape = SubResource("CircleShape2D_amqcw")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1920909124]
+path_desired_distance = 10.0
+
+[node name="HitArea" type="Area2D" parent="." unique_id=2069332792]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=814414462]
+shape = SubResource("CircleShape2D_p4l84")
+
+[node name="HPBar" type="Node2D" parent="." unique_id=1482056445]

@@ -71,3 +71,25 @@
 - Weapons use flags (e.g. `dual_barrel`, `barrage`, `overcharge`) for upgrade effects
 - `apply_choice()` dispatches by card type: weapon_upgrade, weapon_new, utility_upgrade, utility_new, passive
 - HUD shows colored icon bars, level arrows (Lv2→3), gold upgrade name, gray description
+
+## Tasks 7-8 — Bug Fixes & New Features (2026-04-19)
+
+### Bug Fixes
+- **Minimap centering**: `_mini_map_draw.position = Vector2(90, 90)` — Node2D default position is (0,0) = top-left of SubViewport; offset to center fixes world origin alignment
+- **Locomotive bounds**: `clampf(global_position.x, -1580, 1580)` after `move_and_slide()` in locomotive.gd — 20px margin inside 1600 half-map
+- **Wall/Base HP split**: Village now has `wall_hp` (stored in existing `hp`/`max_hp`) and `base_hp`/`base_max_hp` (200). Walls must be destroyed before enemies reach the base. Game over only on base_hp = 0
+- **Clickable cards**: Level-up cards now use `Button` nodes with `pressed` signal → `_on_card_clicked(idx)`, positioned at bottom of screen
+- **Village HP bar**: Updated `_update_village_hp_bar()` to show `base_hp`/`base_max_hp` when `walls_destroyed` is true
+
+### New Features
+- **Body collision bounce-back**: If enemy survives body damage, both enemy and train bounce apart. Enemy gets `apply_knockback(dir, 150)`, train's `speed_multiplier` temporarily reduced by 0.2 (restored after 0.3s)
+- **Time-stop level-up**: `get_tree().paused = true` in `PlayerManager._offer_level_up()`. HUD has `process_mode = PROCESS_MODE_ALWAYS` so cards remain interactive. Unpaused on selection, click, or timeout
+- **Random perimeter spawn**: Enemies spawn at random points along entire map edge (all 4 sides, full length) instead of 4 fixed corridor centers
+- **Shooter enemy**: `enemy_shooter.gd` — 40 HP, 45 speed, HYBRID AI, fires projectiles at player within 300px range, 2s cooldown, 8 dmg per shot. Appears from wave 5 (20% chance)
+- **Enemy projectile support**: `projectile.gd` now has `is_enemy: bool`. When true, `collision_mask = 1` (player layer), `_on_body_entered` damages player structures
+- **Locomotive `take_damage()`**: Added to locomotive.gd — delegates to `train.take_damage()` so enemy projectiles can damage the player train
+
+### Architecture Notes
+- `enemy_base.gd._check_wall_contact()` moved BEFORE `move_and_slide()` so velocity zeroing at walls takes effect
+- Knockback system: `_knockback_velocity`/`_knockback_timer` in enemy_base.gd override normal AI movement during active knockback
+- SceneTree timers created with `get_tree().create_timer()` ARE paused when game is paused — bounce-back speed restore persists through pause (acceptable behavior)

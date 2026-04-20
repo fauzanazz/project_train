@@ -64,6 +64,10 @@ func _move(delta: float) -> void:
 	var dir: Vector2 = Vector2.RIGHT.rotated(rotation)
 	velocity = dir * current_speed * speed_multiplier
 	move_and_slide()
+	# Clamp to map bounds (1600 half-size minus margin)
+	var half := 1580.0
+	global_position.x = clampf(global_position.x, -half, half)
+	global_position.y = clampf(global_position.y, -half, half)
 
 func _push_history() -> void:
 	position_history.push_front(global_position)
@@ -85,6 +89,11 @@ func get_speed_ratio() -> float:
 
 func attach_weapon(weapon_node: Node) -> void:
 	_weapon = weapon_node
+
+func take_damage(amount: float, _damage_type: String = "kinetic") -> void:
+	var train = get_parent()
+	if train and train.has_method("take_damage"):
+		train.take_damage(amount)
 
 func get_weapon() -> Node:
 	return _weapon

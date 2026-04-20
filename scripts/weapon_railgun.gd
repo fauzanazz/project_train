@@ -91,7 +91,7 @@ func _process(delta):
 		queue_free()
 	queue_redraw()
 func _draw():
-	var alpha := max(0, _time / 0.15)
+	var alpha := maxf(0, _time / 0.15)
 	draw_line(_start, _end, Color(1, 1, 1, alpha), 4.0)
 	draw_line(_start, _end, Color(0.7, 0.85, 1.0, alpha * 0.6), 8.0)
 	draw_circle(_start, 6.0 * alpha, Color(1, 1, 1, alpha))

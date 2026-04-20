@@ -18,8 +18,10 @@ var _pending_choices: Array = []
 var _game_over_visible: bool = false
 var _game_over_wave: int = 0
 var _mini_map_draw: Node2D = null
+var _cards_container: VBoxContainer = null
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	PlayerManager.xp_changed.connect(_on_xp_changed)
 	PlayerManager.level_changed.connect(_on_level_changed)
 	PlayerManager.level_up_offer.connect(_on_level_up_offer)
@@ -40,6 +42,7 @@ func _ready() -> void:
 			mini_map.add_child(sv)
 		_mini_map_draw = Node2D.new()
 		_mini_map_draw.name = "MiniMapDraw"
+		_mini_map_draw.position = Vector2(90, 90)
 		_mini_map_draw.set_script(_create_minimap_script())
 		sv.add_child(_mini_map_draw)
 	_connect_village_signal.call_deferred()
@@ -64,7 +67,11 @@ func _process(delta: float) -> void:
 	_update_village_hp_bar()
 	_update_cargo_display()
 	_draw_minimap()
-	_update_level_up_panel()
+	# Update level-up timer display
+	if _cards_container and is_instance_valid(_cards_container):
+		var timer_lbl = _cards_container.get_node_or_null("TimerLabel")
+		if timer_lbl:
+			timer_lbl.text = "Auto-select in %.0fs" % _level_up_timer
 	_update_targeting_mode()
 	_update_game_over()
 
@@ -80,8 +87,72 @@ func _on_level_changed(new_level: int) -> void:
 func _on_level_up_offer(choices: Array) -> void:
 	_pending_choices = choices
 	_level_up_timer = 15.0
-	if level_up_panel:
-		level_up_panel.show()
+	_clear_level_up_cards()
+	if not level_up_panel:
+		return
+	level_up_panel.show()
+	# VBox: timer on top, cards row below
+	_cards_container = VBoxContainer.new()
+	_cards_container.name = "CardsContainer"
+	_cards_container.add_theme_constant_override("separation", 4)
+	level_up_panel.add_child(_cards_container)
+	# Timer label at top
+	var timer_lbl := Label.new()
+	timer_lbl.name = "TimerLabel"
+	timer_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	timer_lbl.add_theme_color_override("font_color", Color("#FFD700"))
+	timer_lbl.add_theme_font_size_override("font_size", 14)
+	_cards_container.add_child(timer_lbl)
+	# HBox for cards
+	var hbox := HBoxContainer.new()
+	hbox.name = "CardsRow"
+	hbox.add_theme_constant_override("separation", 10)
+	_cards_container.add_child(hbox)
+	var type_colors := {
+		"weapon_upgrade": Color("#FF6B35"),
+		"weapon_new": Color("#2ECC71"),
+		"utility_upgrade": Color("#45B7D1"),
+		"utility_new": Color("#96CEB4"),
+		"passive": Color("#FFEAA7"),
+	}
+	for i in _pending_choices.size():
+		var choice = _pending_choices[i]
+		var card := Button.new()
+		card.name = "Card%d" % i
+		card.custom_minimum_size = Vector2(210, 100)
+		var card_type: String = choice.get("type", "passive")
+		var bg_color: Color = type_colors.get(card_type, Color("#444444"))
+		var normal_style := StyleBoxFlat.new()
+		normal_style.bg_color = Color(bg_color.r * 0.2, bg_color.g * 0.2, bg_color.b * 0.2, 0.9)
+		normal_style.border_color = bg_color
+		normal_style.set_border_width_all(2)
+		normal_style.set_corner_radius_all(6)
+		card.add_theme_stylebox_override("normal", normal_style)
+		var hover_style := normal_style.duplicate()
+		hover_style.bg_color = Color(bg_color.r * 0.4, bg_color.g * 0.4, bg_color.b * 0.4, 0.95)
+		card.add_theme_stylebox_override("hover", hover_style)
+		var pressed_style := normal_style.duplicate()
+		pressed_style.bg_color = bg_color
+		card.add_theme_stylebox_override("pressed", pressed_style)
+		# Build text — NO duplication
+		var name_text: String = "%d: %s" % [i + 1, choice.get("name", "???")]
+		if choice.has("current_level"):
+			name_text += " Lv%d→%d" % [choice["current_level"], choice["next_level"]]
+		var plain_text := name_text
+		var upgrade_name: String = choice.get("upgrade_name", "")
+		var upgrade_desc: String = choice.get("upgrade_desc", "")
+		if upgrade_name != "":
+			plain_text += "\n" + upgrade_name
+		if upgrade_desc != "":
+			plain_text += "\n" + upgrade_desc
+		elif choice.has("desc") and not choice.has("upgrade_name"):
+			plain_text += "\n" + str(choice["desc"])
+		card.text = plain_text
+		card.add_theme_color_override("font_color", Color.WHITE)
+		card.add_theme_font_size_override("font_size", 13)
+		var idx := i
+		card.pressed.connect(func(): _on_card_clicked(idx))
+		hbox.add_child(card)
 
 func _on_village_damaged(_amount: float, new_hp: float) -> void:
 	if village_hp_bar:
@@ -102,10 +173,14 @@ func _on_game_over(wave_index: int) -> void:
 	_game_over_wave = wave_index
 
 func _auto_select_level_up() -> void:
-	_level_up_timer = 0.0
+	if _pending_choices.size() > 0:
+		PlayerManager.apply_choice(_pending_choices[0])
 	_pending_choices = []
+	_level_up_timer = 0.0
+	_clear_level_up_cards()
 	if level_up_panel:
 		level_up_panel.hide()
+	get_tree().paused = false
 
 func _input(event: InputEvent) -> void:
 	if _pending_choices.size() > 0 and _level_up_timer > 0.0:
@@ -120,12 +195,19 @@ func _input(event: InputEvent) -> void:
 			PlayerManager.apply_choice(_pending_choices[idx])
 			_pending_choices = []
 			_level_up_timer = 0.0
+			_clear_level_up_cards()
 			if level_up_panel:
 				level_up_panel.hide()
+			get_tree().paused = false
 
 func _update_village_hp_bar() -> void:
 	var village = get_tree().get_first_node_in_group("village") if get_tree() else null
-	if village and "hp" in village and village_hp_bar:
+	if not village or not village_hp_bar:
+		return
+	if "walls_destroyed" in village and village.walls_destroyed:
+		village_hp_bar.max_value = village.base_max_hp if "base_max_hp" in village else 200.0
+		village_hp_bar.value = village.base_hp if "base_hp" in village else 0.0
+	else:
 		village_hp_bar.max_value = village.max_hp if "max_hp" in village else 500.0
 		village_hp_bar.value = village.hp
 
@@ -153,71 +235,20 @@ func _draw_minimap() -> void:
 	if _mini_map_draw:
 		_mini_map_draw.queue_redraw()
 
-func _update_level_up_panel() -> void:
-	if not level_up_panel:
-		return
-	# Clear existing card labels
-	for child in level_up_panel.get_children():
-		if child.name.begins_with("Card"):
-			child.queue_free()
-	if _pending_choices.size() == 0:
-		return
-	var type_colors := {
-		"weapon_upgrade": Color("#FF6B35"),
-		"weapon_new": Color("#4ECDC4"),
-		"utility_upgrade": Color("#45B7D1"),
-		"utility_new": Color("#96CEB4"),
-		"passive": Color("#FFEAA7"),
-	}
-	# Draw level-up cards
-	for i in _pending_choices.size():
-		var choice = _pending_choices[i]
-		var card = HBoxContainer.new()
-		card.name = "Card%d" % i
-		card.custom_minimum_size = Vector2(220, 90)
-		# Colored icon bar
-		var icon = ColorRect.new()
-		icon.custom_minimum_size = Vector2(12, 60)
-		var card_type: String = choice.get("type", "passive")
-		icon.color = type_colors.get(card_type, Color.WHITE)
-		card.add_child(icon)
-		# Text content
-		var content = VBoxContainer.new()
-		content.custom_minimum_size = Vector2(200, 80)
-		# Name with level info
-		var name_lbl = Label.new()
-		var name_text: String = "%d: %s" % [i + 1, choice.get("name", "???")]
-		if choice.has("current_level"):
-			name_text += " Lv%d→%d" % [choice["current_level"], choice["next_level"]]
-		name_lbl.text = name_text
-		name_lbl.add_theme_color_override("font_color", Color.WHITE)
-		content.add_child(name_lbl)
-		# Upgrade name (gold)
-		if choice.has("upgrade_name") and choice["upgrade_name"] != "":
-			var upgrade_lbl = Label.new()
-			upgrade_lbl.text = choice["upgrade_name"]
-			upgrade_lbl.add_theme_color_override("font_color", Color("#FFD700"))
-			content.add_child(upgrade_lbl)
-		# Description
-		var desc_text: String = ""
-		if choice.has("upgrade_desc") and choice["upgrade_desc"] != "":
-			desc_text = choice["upgrade_desc"]
-		elif choice.has("desc"):
-			desc_text = choice["desc"]
-		if desc_text != "":
-			var desc_lbl = Label.new()
-			desc_lbl.text = desc_text
-			desc_lbl.add_theme_color_override("font_color", Color("#AAAAAA"))
-			content.add_child(desc_lbl)
-		card.add_child(content)
-		level_up_panel.add_child(card)
-	# Timer display
-	var timer_lbl = level_up_panel.get_node_or_null("TimerLabel")
-	if not timer_lbl:
-		timer_lbl = Label.new()
-		timer_lbl.name = "TimerLabel"
-		level_up_panel.add_child(timer_lbl)
-	timer_lbl.text = "%.0fs" % _level_up_timer
+func _clear_level_up_cards() -> void:
+	if _cards_container and is_instance_valid(_cards_container):
+		_cards_container.queue_free()
+		_cards_container = null
+
+func _on_card_clicked(idx: int) -> void:
+	if idx >= 0 and idx < _pending_choices.size():
+		PlayerManager.apply_choice(_pending_choices[idx])
+	_pending_choices = []
+	_level_up_timer = 0.0
+	_clear_level_up_cards()
+	if level_up_panel:
+		level_up_panel.hide()
+	get_tree().paused = false
 
 func _update_targeting_mode() -> void:
 	var ctrl = $Control as Control

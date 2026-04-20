@@ -1,29 +1,33 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/enemy_swarmer_queen.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/enemy_swarmer_queen.gd" id="1_waesw"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_5su7r"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_t5gny"]
 radius = 13.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_waesw"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_4lega"]
 radius = 15.0
 
-[node name="EnemySwarmerQueen" type="CharacterBody2D" unique_id=1520317318]
+[node name="EnemySwarmerQueen" type="CharacterBody2D" unique_id=603464379]
 collision_layer = 2
 collision_mask = 17
-script = ExtResource("1_script")
+script = ExtResource("1_waesw")
+max_hp = 150.0
+base_speed = 70.0
+xp_value = 40
+ai_type = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=187078952]
-shape = SubResource("CircleShape2D_5su7r")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1167906781]
+shape = SubResource("CircleShape2D_t5gny")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=453104340]
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1840094057]
 path_desired_distance = 10.0
 
-[node name="HitArea" type="Area2D" parent="." unique_id=311432669]
+[node name="HitArea" type="Area2D" parent="." unique_id=671121355]
 collision_layer = 2
 collision_mask = 5
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1204082817]
-shape = SubResource("CircleShape2D_waesw")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=123365779]
+shape = SubResource("CircleShape2D_4lega")
 
-[node name="HPBar" type="Node2D" parent="." unique_id=1310415052]
+[node name="HPBar" type="Node2D" parent="." unique_id=1794773490]

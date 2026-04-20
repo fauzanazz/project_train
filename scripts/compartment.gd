@@ -59,7 +59,7 @@ func _find_locomotive() -> Node:
 	var locos = get_tree().get_nodes_in_group("locomotive") if get_tree() else []
 	return locos[0] if locos.size() > 0 else null
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, _damage_type: String = "kinetic") -> void:
 	# Check for shield bubble on modifier
 	if modifier and modifier.has_method("absorb_damage"):
 		var remaining: float = modifier.absorb_damage(amount)

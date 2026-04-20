@@ -148,3 +148,33 @@ You are a **container conductor** — the driver of an armored freight train in 
   - **player_manager.gd changes:** Track equipped weapons/utilities and their levels. Generate upgrade-aware cards. Apply upgrades via `weapon.on_level_up(new_level)`.
   - **Each weapon script:** Override `on_level_up(level)` to apply the specific stat changes from its upgrade table.
 - **Verify:** Screenshots show: (1) level-up card panel with 3 choices — one shows "Gatling Gun Lv2 → Overclocked Barrel — Fire rate +20%" with clear upgrade diff; (2) after selecting, the gatling fires faster; (3) leveling up again shows "Gatling Gun Lv3 → Armor Piercing Rounds" or a different card; (4) utility cards show their level progression correctly.
+
+---
+
+## 7. Bug Fixes — Minimap, Bounds, Walls, Clickable Cards
+
+- **Depends on:** 6
+- **Status:** in_progress
+- **Targets:** scripts/hud.gd, scripts/locomotive.gd, scripts/village.gd, scripts/enemy_base.gd
+- **Goal:** Fix 4 critical bugs: minimap off-center, train escaping map, enemies bypassing walls to damage base directly, level-up cards not clickable.
+- **Requirements:**
+  - **Minimap centering:** The `_mini_map_draw` Node2D is at position (0,0) inside a 180×180 SubViewport. All drawing happens relative to this origin, so the map center (0,0 world) appears at the viewport's top-left. Fix: set `_mini_map_draw.position = Vector2(90, 90)` so world origin maps to viewport center.
+  - **Boundary clamping:** Locomotive has no bounds check. Add clamping in `_move()` after `move_and_slide()`: `global_position.x = clampf(global_position.x, -1580, 1580)` (20px margin inside the 1600 half-size).
+  - **Wall/Base HP separation:** Village currently has single `hp` (500) that enemies drain. Change to `wall_hp` (walls) + `base_hp` (village core). Enemies stop at wall perimeter when `wall_hp > 0` and attack walls. When `wall_hp = 0`, walls visually break, enemies pass through and attack `base_hp`. Game over when `base_hp = 0`.
+  - **Clickable cards:** Level-up cards are HBoxContainer nodes with no click handling. Replace with Button-based cards that respond to mouse clicks. Cards still respond to keyboard 1/2/3.
+- **Verify:** Minimap shows village centered. Train stays within map. Enemies stop at walls and attack them before reaching base. Level-up cards are clickable with mouse.
+
+---
+
+## 8. Features — Bounce-Back, Time-Stop Level-Up, Random Spawn, Shooter Enemy
+
+- **Depends on:** 7
+- **Status:** done
+- **Targets:** scripts/train.gd, scripts/enemy_base.gd, scripts/hud.gd, scripts/player_manager.gd, scripts/wave_manager.gd, scripts/enemy_shooter.gd, scenes/enemy_shooter.tscn
+- **Goal:** Add 4 new features: body collision bounce-back, time-stop level-up with bottom-positioned cards, randomized perimeter spawning, and a ranged shooter enemy.
+- **Requirements:**
+  - **Body collision bounce-back:** When train hits an enemy, check if damage kills it. If instant kill (damage ≥ enemy HP), train passes through. If not, both train and enemy bounce back (velocity reversed/pushed apart). Bounce magnitude proportional to train speed.
+  - **Time-stop level-up:** When level-up cards appear, pause the game tree (`get_tree().paused = true`). HUD must have `process_mode = PROCESS_MODE_ALWAYS` to still function. On card selection or timeout, unpause. Cards displayed at bottom of screen in a horizontal row.
+  - **Randomized perimeter spawn:** Instead of 4 fixed spawn corridors, enemies spawn at random points along the entire map perimeter (all 4 edges, full length).
+  - **Shooter enemy:** New enemy type `enemy_shooter.gd` — 40 HP, 45 speed, PATH_TO_PLAYER. Stops when within 300px of player and fires projectiles. Drawn as a green zombie with a protruding arm holding a projectile. 2s fire cooldown, 8 dmg per shot.
+- **Verify:** Train bounces off tough enemies, passes through weak ones. Level-up pauses game and shows cards at bottom. Enemies spawn from random map edges. Shooter enemy fires at player.

@@ -9,6 +9,7 @@ signal level_up_offer(choices: Array)
 var current_xp: int = 0
 var current_level: int = 1
 var _xp_for_next: int = 100
+var _applied_passives: Dictionary = {}  # passive_id -> count
 
 const WEAPON_DEFS := {
 	"gatling_mk1": {"name": "Gatling Gun", "desc": "Auto-aims nearest, 8 dmg", "script": "res://scripts/weapon_gatling.gd"},
@@ -40,6 +41,7 @@ func _on_game_started() -> void:
 	current_xp = 0
 	current_level = 1
 	_xp_for_next = _xp_threshold(1)
+	_applied_passives.clear()
 
 func _xp_threshold(level: int) -> int:
 	return int(100.0 * pow(level, 1.4))
@@ -56,6 +58,7 @@ func add_xp(amount: int) -> void:
 
 func _offer_level_up() -> void:
 	var choices := _generate_choices(3)
+	get_tree().paused = true
 	level_up_offer.emit(choices)
 
 func _generate_choices(count: int) -> Array:
@@ -113,6 +116,8 @@ func _generate_choices(count: int) -> Array:
 				})
 
 	for p_id in PASSIVE_DEFS:
+		if p_id in _applied_passives:
+			continue
 		var def = PASSIVE_DEFS[p_id]
 		pool.append({
 			"id": p_id,
@@ -152,6 +157,7 @@ func _apply_passive(passive_id: String) -> void:
 			train.damage_reduction += 0.25
 		"cargo_expansion":
 			train.add_compartment(load("res://scenes/compartment.tscn"))
+	_applied_passives[passive_id] = _applied_passives.get(passive_id, 0) + 1
 
 func _attach_modifier(slot_name: String, script_path: String) -> void:
 	var train = _find_train()

@@ -5,9 +5,9 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_b46a2"]
 radius = 25.0
 
-[node name="ToxicPuddle" type="Area2D" unique_id=1051463844]
+[node name="ToxicPuddle" type="Area2D" unique_id=2039111421]
 collision_layer = 32
 script = ExtResource("1_qu0ia")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1494519037]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=770995622]
 shape = SubResource("CircleShape2D_b46a2")
